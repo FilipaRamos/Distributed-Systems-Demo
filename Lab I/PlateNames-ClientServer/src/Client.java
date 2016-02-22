@@ -1,54 +1,63 @@
+import java.io.*;
+import java.net.*;
 import java.util.*;
 
 public class Client {
-	// arguments needed for client
-	String host_name;
-	int port_number;
-	String oper;
-	ArrayList<String> opnd = new ArrayList<String>();
 	
-	// data 
-	String plate_number;
-	String owner_name;
-	String result;
+	public static void main(String args[]) throws Exception {
+		
+		byte[] receiveData = new byte[1024];
+		byte[] sendData = new byte[1024];
+		
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		DatagramSocket clientSocket = new DatagramSocket();
+		InetAddress IPAddress = InetAddress.getByName("localhost");
 
-	// constructor
-	public Client(String hn, int pn, String operation, ArrayList<String> arguments){
-		host_name = hn;
-		port_number = pn;
-		oper = operation;
-		opnd = arguments;
-		processArguments();
-	}	
-	
-	// distinguish between commands
-	void processArguments(){
-		if(opnd.get(0) == "register"){
-			plate_number = opnd.get(1);
-			owner_name = opnd.get(2);
-			register(plate_number, owner_name);
+		System.out.println("Command :");
+
+		Scanner input = new Scanner(System.in);
+		String command = input.nextLine();
+		System.out.println(command);
+		String plate_number = input.nextLine();
+		System.out.println(plate_number);
+
+		if (command.equals("REGISTER")) {
+			System.out.println("whattt???");
+			String owner_name = input.nextLine();
+
+			String register = "register" + " " + plate_number + " " + owner_name;
+
+			sendData = register.getBytes();
+			
+			DatagramPacket registerAction = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+			clientSocket.send(registerAction);
+			
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			clientSocket.receive(receivePacket);
+			
+			String dataReceived = new String(receivePacket.getData());
+			System.out.println(dataReceived);
+
 		}
-		else if(opnd.get(0) == "lookup"){
-			owner_name = opnd.get(1);
-			lookup(owner_name);
+		else if(command == "LOOKUP"){
+			String lookup = "lookup" + " " + plate_number;
+			
+			sendData = lookup.getBytes();
+			
+			DatagramPacket lookupAction = new DatagramPacket(sendData, sendData.length, IPAddress, 9876);
+			clientSocket.send(lookupAction);
+			
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			clientSocket.receive(receivePacket);
+			
+			String found = new String(receivePacket.getData());
+			System.out.println(found);
 		}
-		else
-			System.out.println("ERROR");
-	}
-	
-	// register 
-	void register(String plate, String owner){
+		else{
+			System.out.println("ERROR! Wrong command!");
+		}
 		
+		clientSocket.close();
 	}
-	
-	// lookup
-	void lookup(String owner){
-		
-	}
-	
-	// process the results obtained from the server
-	void processResults(){
-		
-	}
-	
+
 }
