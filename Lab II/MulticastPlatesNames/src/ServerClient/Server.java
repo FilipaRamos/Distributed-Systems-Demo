@@ -43,7 +43,7 @@ public class Server {
 
 	}
 
-	@SuppressWarnings("resource")
+	// Create the DatagramSocket
 	public void start() throws SocketException {
 		socket = new DatagramSocket(srvc_port);
 		System.out.println("Launching Multicast Server Thread!");
@@ -53,14 +53,48 @@ public class Server {
 
 		while(true){
 			try{
-				// store the message
+				// store the messages
 				byte[] bufferReceived = new byte[256];
+				byte[] bufferSend = new byte[256];
+				
+				// message to be sent
+				String message;
 			
 				// settle the IP_address
 				InetAddress IP_address = InetAddress.getByName(mcast_addr);
-				DatagramPacket packetReceived = new DatagramPacket(bufferReceived, bufferReceived.length, IP_address, srvc_port);
-			
-				socket.receive(packetReceived);
+				
+				// get the client's request
+				DatagramPacket receivedPacket = new DatagramPacket(bufferReceived, bufferReceived.length, IP_address, srvc_port);
+				socket.receive(receivedPacket);
+				String request = new String(receivedPacket.getData());
+				System.out.println("Server received: " + request);
+				
+				// perform the requested operation
+				String[] splitted = request.split(" ");
+					// register
+				if(splitted[0].equals("register")){
+					System.out.println("Register operation requested. Plate number: " + splitted[1] + ". Owner name: " + splitted[2]);
+					server.register(splitted[1], splitted[2]);
+					message = "register " + splitted[1] + " " + splitted[2];
+				}
+					// lookup
+				if(splitted[0].equals("lookup")){
+					System.out.println("Lookup operation requested. Plate number: " + splitted[1]);
+					String owner_name = server.lookup(splitted[1]);
+					message = "lookup " + splitted[1] + " " + owner_name;
+				}
+				else{ // error 
+					message = "error";
+				}
+
+				// send the reply
+				bufferSend = message.getBytes();
+				DatagramPacket toSend = new DatagramPacket(bufferSend, bufferSend.length, IP_address, srvc_port);
+				
+				socket.send(toSend);
+				
+				socket.close(); // DEVE SER FEITO OU NÃO???
+				
 				try // wait until it is time to send again
 				{ Thread.sleep(time_interval);}
 				catch (InterruptedException X) {X.printStackTrace();}
@@ -72,7 +106,7 @@ public class Server {
 		}
 	}
 	
-	public void log(){ // FALTA O PRINT DO SVRC_ADDR
+	public void log(){ // FALTA O PRINT DO SVRC_ADDR!!!!
 		String log = "multicast: " + 
 				mcast_addr + mcast_port + 
 				":" + srvc_port;
@@ -84,15 +118,15 @@ public class Server {
 		System.out.println("Adding register to the database...");
 
 		String newPlate = plate_number + " " + owner_name;
-		if(database.contains(newPlate))
+		if(!database.contains(newPlate))
 			database.add(newPlate);
 		
 		System.out.println("Plate added successfully!");
-		
 	}
 	
 	// find the plate and return the owner_name
 	public String lookup(String plate_number){
+		System.out.println("Looking for plate number...");
 		
 		String owner_name = null;
 		
@@ -104,7 +138,7 @@ public class Server {
 			}
 		}
 		
+		System.out.println("Plate found successfully!");
 		return owner_name;
-		
 	}
 }
