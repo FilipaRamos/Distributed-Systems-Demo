@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
 
 public class Server {
@@ -16,10 +15,8 @@ public class Server {
 	public static String mcast_addr;
 	// multicast group port number
 	public static int mcast_port;
-	// the datagramSocket to be used
-	public DatagramSocket socket;
-	// time interval between communications (1 s)
-	public int time_interval = 1000;
+	// the multicastSocket to be used
+	public DatagramSocket socket = null;
 
 	// Class constructor
 	public Server() {
@@ -44,24 +41,36 @@ public class Server {
 	}
 
 	// Create the DatagramSocket
-	public void start() throws SocketException {
+	public void start() throws IOException {
 		socket = new DatagramSocket(srvc_port);
 		System.out.println("Launching Multicast Server Thread!");
+		// set the socket timeout to 1 s so that it doesn't wait too long for a message to be received
+		socket.setSoTimeout(1000);
 	}
 
+	@SuppressWarnings("null")
 	public void serverEngine(Server server) throws IOException{
 
 		while(true){
-			try{
-				// store the messages
-				byte[] bufferReceived = new byte[256];
-				byte[] bufferSend = new byte[256];
-				
-				// message to be sent
-				String message;
 			
-				// settle the IP_address
-				InetAddress IP_address = InetAddress.getByName(mcast_addr);
+			// settle the IP_address
+			InetAddress IP_address = InetAddress.getByName(mcast_addr);
+			
+			// store the messages
+			byte[] bufferReceived = new byte[256];
+			byte[] bufferSend = new byte[256];
+			
+			// message to advertise the IP address and port number
+			String advertisement = "Server offers service in " + mcast_addr + srvc_port;
+			
+			// message to be sent
+			String message = null;
+			
+			try{	
+				// send the advertisement
+				bufferSend = advertisement.getBytes();
+				DatagramPacket toSend = new DatagramPacket(bufferSend, bufferSend.length, IP_address, srvc_port);
+				socket.send(toSend);
 				
 				// get the client's request
 				DatagramPacket receivedPacket = new DatagramPacket(bufferReceived, bufferReceived.length, IP_address, srvc_port);
@@ -69,44 +78,37 @@ public class Server {
 				String request = new String(receivedPacket.getData());
 				System.out.println("Server received: " + request);
 				
-				// perform the requested operation
-				String[] splitted = request.split(" ");
+				// if a request was received
+				if (request != null) {
+					
+					// perform the requested operation
+					String[] splitted = request.split(" ");
 					// register
-				if(splitted[0].equals("register")){
-					System.out.println("Register operation requested. Plate number: " + splitted[1] + ". Owner name: " + splitted[2]);
-					server.register(splitted[1], splitted[2]);
-					message = "register " + splitted[1] + " " + splitted[2];
-				}
+					if (splitted[0].equals("register")) {
+						System.out.println("Register operation requested. Plate number: " + splitted[1]
+								+ ". Owner name: " + splitted[2]);
+						server.register(splitted[1], splitted[2]);
+						message = "register " + splitted[1] + " " + splitted[2];
+					}
 					// lookup
-				if(splitted[0].equals("lookup")){
-					System.out.println("Lookup operation requested. Plate number: " + splitted[1]);
-					String owner_name = server.lookup(splitted[1]);
-					message = "lookup " + splitted[1] + " " + owner_name;
+					if (splitted[0].equals("lookup")) {
+						System.out.println("Lookup operation requested. Plate number: " + splitted[1]);
+						String owner_name = server.lookup(splitted[1]);
+						message = "lookup " + splitted[1] + " " + owner_name;
+					} else { // error
+						message = "error";
+					}
 				}
-				else{ // error 
-					message = "error";
-				}
-
-				// send the reply
-				bufferSend = message.getBytes();
-				DatagramPacket toSend = new DatagramPacket(bufferSend, bufferSend.length, IP_address, srvc_port);
-				
-				socket.send(toSend);
-				
-				socket.close(); // DEVE SER FEITO OU NÃO???
-				
-				try // wait until it is time to send again
-				{ Thread.sleep(time_interval);}
-				catch (InterruptedException X) {X.printStackTrace();}
 			}
 			catch(IOException X){
 				X.printStackTrace();
 				break;
 			}
+			
 		}
 	}
 	
-	public void log(){ // FALTA O PRINT DO SVRC_ADDR!!!!
+	public void log(){ 
 		String log = "multicast: " + 
 				mcast_addr + mcast_port + 
 				":" + srvc_port;
