@@ -1,5 +1,0 @@
-INDEX VERSION 1.127+C:\Users\Mariana\Documents\GitHub\SDIS-labs\.metadata\.plugins\org.eclipse.jdt.core
-2840719386.index
-1042936008.index
-3763583592.index
-390042612.index
