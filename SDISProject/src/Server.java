@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import Interface.*;
 
 public class Server implements Runnable {
 	// id of the server
@@ -62,6 +63,8 @@ public class Server implements Runnable {
 		
 		new Thread(server).start();
 		
+		Browser browser = new Browser();
+			
 	}
 	
 	// the engine of the server which calls the needed procedures
@@ -76,19 +79,23 @@ public class Server implements Runnable {
 				this.restoreAddress, this.restorePort);
 		
 		manager = new ManageDisk(this.disk);
+		long space;
 		
 		while(true){
 			
 			manager.evaluateDisk();
-			long space = manager.freeSpace;
+			space = manager.freeSpace;
 			
-			String message = "available size = " + String.valueOf(space) + " bytes";
+			String message = "Server " + id + " available size = " + String.valueOf(space) + " bytes";
 			
 			String response = multicast.ControlChannel(this.controlAddress, this.controlPort, message, operation);
 			System.out.println(response);
+
+			manager.evaluateDisk();
+			space = manager.freeSpace;
 			
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(3000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -23,15 +23,15 @@ public class ManageDisk {
     	System.out.println("Usable space : " + usableSpace /1024 /1024 /1024 + " GB");
     	System.out.println("Space free : " + freeSpace /1024 /1024 / 1024 + " GB");
     	
-    	this.freeSpace = usableSpace;
+    	this.freeSpace = freeSpace;
     	
 	}
 	
 	// to evaluate again the size of the partition
 	public void evaluateDisk(){
-		long usableSpace = file.getUsableSpace();
+		long freeSpace = file.getFreeSpace();
 		
-		this.freeSpace = usableSpace;
+		this.freeSpace = freeSpace;
 	}
 
 }

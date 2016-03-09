@@ -80,12 +80,9 @@ public class Multicast {
 			byte[] buffer = new byte[256];
 
 			buffer = message.getBytes();
-			System.out.println(message);
 
 			DatagramPacket toSend = new DatagramPacket(buffer, buffer.length, controlIP, port);
 			this.controlSocket.send(toSend);
-
-			System.out.println("sent partition size");
 
 		} catch (IOException e) {
 			e.printStackTrace();
