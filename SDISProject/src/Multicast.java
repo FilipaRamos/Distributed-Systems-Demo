@@ -31,7 +31,7 @@ public class Multicast {
 
 		this.controlAddress = controlAddress;
 		this.controlPort = controlPort;
-		
+
 		System.out.println("Control Channel Address and Port:");
 		System.out.println(this.controlAddress + " " + this.controlPort);
 
@@ -50,31 +50,83 @@ public class Multicast {
 	}
 
 	// channel used for control messages
-	public int ControlChannel(String address, int port, String message){
-		try{
+	public String ControlChannel(String address, int port, String message, String request) {
+		try {
 			this.controlSocket = new MulticastSocket(port);
 			controlIP = InetAddress.getByName(address);
-			
+
 			// set the time to live for the socket
 			this.controlSocket.setTimeToLive(1);
-			
-		}catch(IOException e){
+
+			if (request.equals("send")) {
+				sendControl(address, port, message);
+				return "sent";
+			} else {
+				String listened = listenControl(address, port);
+				return listened;
+			}
+
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return 1;
+		
+		return "error";
+	}
+
+	// send a request through the multicast channel
+	public void sendControl(String address, int port, String message) {
+		try {
+
+			byte[] buffer = new byte[256];
+
+			buffer = message.getBytes();
+			System.out.println(message);
+
+			DatagramPacket toSend = new DatagramPacket(buffer, buffer.length, controlIP, port);
+			this.controlSocket.send(toSend);
+
+			System.out.println("sent partition size");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// listen on the controlChannel
+	public String listenControl(String address, int port) {
+		
+		System.out.println("Listening on Control Channel...");
+		
+		try {
+			this.controlSocket.joinGroup(controlIP);
+			
+			byte[] buffer = new byte[256];
+			
+			DatagramPacket toReceive = new DatagramPacket(buffer, buffer.length, controlIP, port);
+			this.controlSocket.receive(toReceive);
+			
+			String received = new String(toReceive.getData()).substring(0, toReceive.getLength());
+			
+			return received;
+			
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return "error";
 	}
 
 	// channel used to process info sent to backup
 	public int BackupChannel(String address, int port) {
-		try{
+		try {
 			this.backupSocket = new MulticastSocket(port);
 			backupIP = InetAddress.getByName(address);
-			
+
 			// set the time to live for the socket
 			this.backupSocket.setTimeToLive(1);
-			
-			
-		}catch(IOException e){
+
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return 1;
@@ -82,14 +134,14 @@ public class Multicast {
 
 	// channel used to process restore operations
 	public int RestoreChannel(String address, int port) {
-		try{
+		try {
 			this.restoreSocket = new MulticastSocket(port);
 			restoreIP = InetAddress.getByName(address);
-			
+
 			// set the time to live for the socket
 			this.restoreSocket.setTimeToLive(1);
-			
-		}catch(IOException e){
+
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return 1;
