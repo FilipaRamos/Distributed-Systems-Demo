@@ -39,7 +39,7 @@ public class Server{
 	}
 
 	// main
-	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException, FileNotFoundException {
+	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 		if (args.length != 8) {
 			System.out.println("Wrong number of arguments!");
 			System.exit(1);

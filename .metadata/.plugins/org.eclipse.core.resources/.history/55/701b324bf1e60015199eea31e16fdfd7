@@ -39,7 +39,7 @@ public class Server{
 	}
 
 	// main
-	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException, FileNotFoundException {
+	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 		if (args.length != 8) {
 			System.out.println("Wrong number of arguments!");
 			System.exit(1);
@@ -60,7 +60,7 @@ public class Server{
 				server.restoreAddress, server.restorePort);
 		server.ServerEngine(server, option);
 
-		ServerFile file = new ServerFile(1, "ficheiro.pl", 128000, "Ana");
+		// ServerFile file = new ServerFile(1, "ficheiro.pl", 128000, "Ana");
 
 		//Browser browser = new Browser();
 
