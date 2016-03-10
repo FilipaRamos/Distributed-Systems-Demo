@@ -2,9 +2,7 @@ import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import Interface.*;
-
-public class Server implements Runnable {
+public class Server{
 	// id of the server
 	public int id;
 	// control address and port
@@ -24,13 +22,11 @@ public class Server implements Runnable {
 	public ManageDisk manager;
 	// operation to run
 	public String operation;
-	
+
 	// server constructor
-	public Server(int id, String controlAddress, int controlPort, 
-			String backupAddress, int backupPort, 
-			String restoreAddress, int restorePort,
-			String disk, String request){
-		
+	public Server(int id, String controlAddress, int controlPort, String backupAddress, int backupPort,
+			String restoreAddress, int restorePort, String disk) {
+
 		this.id = id;
 		this.controlAddress = controlAddress;
 		this.controlPort = controlPort;
@@ -39,72 +35,46 @@ public class Server implements Runnable {
 		this.restoreAddress = restoreAddress;
 		this.restorePort = restorePort;
 		this.disk = disk;
-		this.operation = request;
-		
+
 	}
-	
+
 	// main
-	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException, FileNotFoundException{
-		if(args.length != 8){
+	public static void main(String[] args) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+		if (args.length != 8) {
 			System.out.println("Wrong number of arguments!");
 			System.exit(1);
 		}
+		
+		Server server = new Server(Integer.parseInt(args[0]), args[1], Integer.parseInt(args[2]), args[3],
+				Integer.parseInt(args[4]), args[5], Integer.parseInt(args[6]), args[7]);
 
 		System.out.println(" =================== ");
-		
-		System.out.println("Choose the operation: ");
-		
+
+		System.out.println("What's the operation to perform?");
+
 		Scanner input = new Scanner(System.in);
 		String option = input.nextLine();
-	
-		Server server = new Server(Integer.parseInt(args[0]), args[1], Integer.parseInt(args[2]), 
-				args[3], Integer.parseInt(args[4]), 
-				args[5], Integer.parseInt(args[6]), args[7], option);
-		
-		ServerFile file = new ServerFile(1, "ficheiro.pl", 128000, "Ana");
-		
-		new Thread(server).start();
-		
-		Browser browser = new Browser();
-			
+
+		server.multicast = new Multicast(server.controlAddress, server.controlPort, 
+				server.backupAddress, server.backupPort, 
+				server.restoreAddress, server.restorePort);
+		server.ServerEngine(server, option);
+
+		// ServerFile file = new ServerFile(1, "ficheiro.pl", 128000, "Ana");
+
+		//Browser browser = new Browser();
+
 	}
-	
+
 	// the engine of the server which calls the needed procedures
-	public int ServerEngine(){
-		return 0;
-	}
-
-	@Override
-	public void run() {
-		multicast = new Multicast(this.controlAddress, this.controlPort, 
-				this.backupAddress, this.backupPort,
-				this.restoreAddress, this.restorePort);
+	public void ServerEngine(Server server, String request) {
 		
-		manager = new ManageDisk(this.disk);
-		long space;
+		ThreadEngine threadManager1 = new ThreadEngine(request, this.multicast);
+		threadManager1.CreateThread(threadManager1);
 		
-		while(true){
-			
-			manager.evaluateDisk();
-			space = manager.freeSpace;
-			
-			String message = "Server " + id + " available size = " + String.valueOf(space) + " bytes";
-			
-			String response = multicast.ControlChannel(this.controlAddress, this.controlPort, message, operation);
-			System.out.println(response);
-
-			manager.evaluateDisk();
-			space = manager.freeSpace;
-			
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
-		
-	}
+		//ThreadEngine threadManager2 = new ThreadEngine("request", this.multicast);
+		//threadManager2.CreateThread(threadManager2);
 	
+	}
+
 }

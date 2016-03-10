@@ -14,7 +14,7 @@ public class Chunk {
 	public byte[] chunkData;
 	
 	// constructor
-	public Chunk(String fileId, String filename, int chunkNo, byte[] chunkData){
+	public Chunk(byte[] fileId, String filename, int chunkNo, byte[] chunkData){
 		
 		this.fileId = fileId;
 		this.filename = filename;
