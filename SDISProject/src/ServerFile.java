@@ -1,9 +1,12 @@
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class ServerFile {
+	// to define the chunk's size
+	public int CHUNK_SIZE = 64000;
 	// the id of the server to which the original copy of the file belongs to
 	public int homeServer;
 	// the name of the file
@@ -22,55 +25,127 @@ public class ServerFile {
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 
 	// constructor
-	public ServerFile(int homeServer, String name, int size, String owner)
-			throws NoSuchAlgorithmException, FileNotFoundException {
+	public ServerFile(int homeServer, String name, int size, String owner, String date) {
 
 		this.homeServer = homeServer;
 		this.name = name;
 		this.size = size;
 		this.owner = owner;
-		this.chunksNo = this.size / 64000 + 1;
+		this.date = date;
+		this.chunksNo = (this.size / (64000)) + 1;
 
-		File f = new File(name);
-		this.date = Long.toString(f.lastModified());
-
-		MessageDigest md = MessageDigest.getInstance("SHA-256");
-		String id = name + date + owner;
-		md.update(id.getBytes());
-		byte[] digest = md.digest();
-		this.identifier = String.format("%064x", new java.math.BigInteger(1,
-				digest));
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			String id = name + date + owner;
+			md.update(id.getBytes());
+			byte[] digest = md.digest();
+			this.identifier = String.format("%064x", new java.math.BigInteger(1, digest));
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
 
 		System.out.println("File belongs to server: " + this.homeServer);
 		System.out.println("Filename: " + this.name);
-		System.out.println("File Identifier: " + this.identifier);
+		System.out.println("Identifier: " + this.identifier);
 		System.out.println("File size: " + this.size);
 		System.out.println("Owner of the file: " + this.owner);
 		System.out.println("Number of chunks to be used: " + this.chunksNo);
+
 	}
 
 	// splits the file in chunks
-	public void splitFile(File f) throws FileNotFoundException, IOException {
+	public void splitFile(File inputFile) {
 
-		int partCounter = 0;
+		FileInputStream inputStream;
+		String newFileName;
+		FileOutputStream filePart;
 
-		// maximum size of chunks is 64 kb
-		int chunksSize = 64 * 1024;
-
-		byte[] buffer = new byte[chunksSize];
-
-		try (BufferedInputStream bis = new BufferedInputStream(
-				new FileInputStream(f))) {
-
-			String name = f.getName();
-
-			int tmp = 0;
-			while ((tmp = bis.read(buffer)) > 0) {
-				// write each chunk of data into separate file with different
-				Chunk chunk = new Chunk(identifier, name, partCounter, buffer);
+		System.out.println("...splitting file...");
+		
+		int fileSize = (int) inputFile.length();
+		int nChunks = 0, read = 0, readLength = CHUNK_SIZE;
+		byte[] byteChunkPart;
+		
+		try{
+			inputStream = new FileInputStream(inputFile);
+			while (fileSize > 0) {
+				if (fileSize <= 64000) {
+					readLength = fileSize;
+				}
+				
+				byteChunkPart = new byte[readLength];
+				read = inputStream.read(byteChunkPart, 0, readLength);
+				fileSize -= read;
+				
+				assert (read == byteChunkPart.length);
+				nChunks++;
+				newFileName = identifier + "_" + Integer.toString(nChunks - 1);
+				
+				filePart = new FileOutputStream(new File(newFileName));
+				filePart.write(byteChunkPart);
+				
+				Chunk chunk = new Chunk(identifier, inputFile.getName(), nChunks-1, byteChunkPart);
 				chunks.add(chunk);
-				System.out.println("Chunk created -> nr " + partCounter);
+				
+				filePart.flush();
+				filePart.close();
+				byteChunkPart = null;
+				filePart = null;
 			}
+			inputStream.close();
+		} catch (IOException e){
+			e.printStackTrace();
+		}
+		System.out.println("splitted file");
+
+	}
+
+	// merge the file back together
+	public void mergeFile(String filename) {
+
+		File file = new File("E:\\", filename);
+		FileOutputStream fos;
+		FileInputStream fis;
+		byte[] fileBytes;
+		int bytesRead = 0;
+		ArrayList<File> list = new ArrayList<File>();
+
+		for (int i = 0; i < list.size(); i++) {
+			list.add(new File(file.getName() + ".part" + i));
+		}
+
+		try {
+			fos = new FileOutputStream(file, true);
+			for (File f : list) {
+
+				fis = new FileInputStream(f);
+				fileBytes = new byte[(int) f.length()];
+				bytesRead = fis.read(fileBytes, 0, (int) f.length());
+				assert (bytesRead == fileBytes.length);
+				assert (bytesRead == (int) f.length());
+				fos.write(fileBytes);
+				fos.flush();
+				fileBytes = null;
+				fis.close();
+				fis = null;
+
+			}
+
+			fos.close();
+			fos = null;
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
+
+	// hash the string (to create file identifier)
+	public byte[] hash(String text) throws NoSuchAlgorithmException {
+
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
+
+		return hash;
+	}
+
 }

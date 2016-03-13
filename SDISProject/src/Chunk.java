@@ -24,8 +24,8 @@ public class Chunk {
 	}
 	
 	// to write the chunk in the disk
-	public void WriteChunk(Chunk chunk) {
-		String outputFile = chunk.filename + chunk.chunkNo;
+	public void writeChunk(Chunk chunk) {
+		String outputFile = "E:\\" + chunk.fileId + "_" + chunk.chunkNo;
 
 		File dstFile = new File(outputFile);
 		FileOutputStream fileOutputStream = null;
@@ -36,7 +36,7 @@ public class Chunk {
 			fileOutputStream.flush();
 			fileOutputStream.close();
 			
-			System.out.println("Output file : " + outputFile + " is successfully saved! ");
+			System.out.println("Output file : " + chunk.filename + " is successfully saved! ");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

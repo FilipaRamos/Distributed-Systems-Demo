@@ -61,7 +61,7 @@ public class Multicast {
 			if (request.equals("send")) {
 				sendControl(address, port, message);
 				return "sent";
-			} else {
+			} else if (request.equals("listen")) {
 				String listened = listenControl(address, port);
 				return listened;
 			}
@@ -69,7 +69,7 @@ public class Multicast {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return "error";
 	}
 
@@ -91,31 +91,30 @@ public class Multicast {
 
 	// listen on the controlChannel
 	public String listenControl(String address, int port) {
-		
+
 		System.out.println("Listening on Control Channel...");
-		
+
 		try {
 			this.controlSocket.joinGroup(controlIP);
-			
+
 			byte[] buffer = new byte[256];
-			
+
 			DatagramPacket toReceive = new DatagramPacket(buffer, buffer.length, controlIP, port);
 			this.controlSocket.receive(toReceive);
-			
+
 			String received = new String(toReceive.getData()).substring(0, toReceive.getLength());
-			
+
 			return received;
-			
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return "error";
 	}
 
 	// channel used to process info sent to backup
-	public int BackupChannel(String address, int port) {
+	public byte[] BackupChannel(String address, int port, byte[] data, String request) {
 		try {
 			this.backupSocket = new MulticastSocket(port);
 			backupIP = InetAddress.getByName(address);
@@ -123,10 +122,57 @@ public class Multicast {
 			// set the time to live for the socket
 			this.backupSocket.setTimeToLive(1);
 
+			if (request.equals("send")) {
+				sendBackup(address, port, data);
+				String sent = "sent chunk";
+				return sent.getBytes();
+			} else if (request.equals("listen")) {
+				byte[] listened = listenBackup(address, port);
+				return listened;
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return 1;
+		
+		String error = "error";
+		return error.getBytes();
+	}
+
+	// send data through the multicast backup channel
+	public void sendBackup(String address, int port, byte[] buffer) {
+		try {
+
+			DatagramPacket toSend = new DatagramPacket(buffer, buffer.length, backupIP, port);
+			this.backupSocket.send(toSend);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// receive data through the multicast backup channel
+	public byte[] listenBackup(String address, int port) throws UnsupportedEncodingException {
+
+		System.out.println("Listening on the backup channel");
+
+		try {
+			this.backupSocket.joinGroup(backupIP);
+
+			byte[] buffer = new byte[256];
+
+			DatagramPacket toReceive = new DatagramPacket(buffer, buffer.length, backupIP, port);
+			this.backupSocket.receive(toReceive);
+
+			return buffer;
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		String error = "error";
+		return error.getBytes();
+
 	}
 
 	// channel used to process restore operations
@@ -142,6 +188,32 @@ public class Multicast {
 			e.printStackTrace();
 		}
 		return 1;
+	}
+
+	// closes the channels according to the option given
+	public void closeChannels(String option) {
+
+		switch (option) {
+		case "control":
+			this.controlSocket.close();
+			break;
+		case "backup":
+			this.backupSocket.close();
+			break;
+		case "restore":
+			this.restoreSocket.close();
+			break;
+		case "all":
+			this.controlSocket.close();
+			this.backupSocket.close();
+			this.restoreSocket.close();
+			break;
+		default:
+			break;
+		}
+		
+		System.out.println("Closing channel(s) " + option + "...");
+
 	}
 
 }
