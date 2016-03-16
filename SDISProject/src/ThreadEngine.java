@@ -1,6 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 public class ThreadEngine implements Runnable {
 	// the operation to perform
@@ -16,6 +14,10 @@ public class ThreadEngine implements Runnable {
 	public String controlResponse;
 	// response received on the backup channel
 	public String backupResponse;
+	// the backup protocol
+	public Protocol backupProtocol = new Protocol();
+	// the index of the chunk
+	public int chunkNr = 0;
 
 	// constructor for the ThreadEngine
 	public ThreadEngine(String operation, Server server, ServerFile file, File f) {
@@ -32,9 +34,7 @@ public class ThreadEngine implements Runnable {
 	}
 
 	// kill thread
-	public void KillThread() {
-
-	}
+	public void KillThread() {}
 
 	@Override
 	public void run() {
@@ -65,36 +65,14 @@ public class ThreadEngine implements Runnable {
 				}
 			}
 		case "backup":
-			int nrChunks = 0;
-			while (nrChunks < file.chunksNo) {
-				try {
-					multicast.BackupChannel(multicast.backupAddress, multicast.backupPort,
-							file.chunks.get(nrChunks).chunkData, "send");
-					System.out.print(" sent ");
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				nrChunks++;
-			}
+			backupProtocol.backupProtocol(server, "send");
 			break;
 		case "listen backup":
-			int chunkIndex = 0;
-			while (true) {
-				try {
-					System.out.print("estou aqui");
-					byte[] received;
-					received = multicast.BackupChannel(multicast.backupAddress, multicast.backupPort, null, "listen");
-					System.out.println("received chunk");
-					Chunk chunk = new Chunk(file.identifier, file.name, chunkIndex, received);
-					chunk.writeChunk(chunk);
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				chunkIndex++;
+			int indexChunk = 0;
+			while(true){
+				indexChunk = backupProtocol.backupProtocol(server, "listen");
+				backupProtocol.controlProtocol(server, "reply backup", indexChunk);
+				System.out.println("Replied after recieving and storing a chunk!");
 			}
 		case "restore":
 			break;

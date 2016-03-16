@@ -4,14 +4,14 @@ public class Message {
 	// message header info
 	public String type;
 	public int version;
-	public int senderId;
-	public int fileId;
+	public String senderId;
+	public String fileId;
 	public int chunkNo;
 	public int replicationDeg;
 
 	// message constructor
 	public Message(String type, int version, 
-			int senderId, int fileId, 
+			String senderId, String fileId, 
 			int chunkNo, int replicationDeg){
 		
 		this.type = type;
@@ -23,6 +23,15 @@ public class Message {
 		
 	}
 	
+	// message to reply after storing chunk
+	public String storedChunk(){
+		StringBuilder nrChunk = new StringBuilder();
+		nrChunk.append(chunkNo);
+		
+		return "STORED" + " " + "1.0" + " " + senderId + " " + fileId + " " + nrChunk.toString() + " " + "CRLF" + "CRLF";
+	}
+	
+	/*
 	// turns strings into ascii code
 	public long toAscii(String s){
         StringBuilder sb = new StringBuilder();
@@ -36,5 +45,5 @@ public class Message {
                 asciiInt = Long.parseLong(ascString);
                 return asciiInt;
     }
-	
+	*/
 }

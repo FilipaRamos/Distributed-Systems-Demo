@@ -6,23 +6,33 @@ import java.io.IOException;
 public class Chunk {
 	// the id of the file to which the chunk belongs to
 	public String fileId;
-	// the name of the file
-	public String filename;
 	// the number of the chunk
 	public int chunkNo;
 	// the data of the chunk
 	public byte[] chunkData;
+	// the desired replication degree
+	public int replicationDegree;
+	// the actual replication degree
+	public int actualReplication;
 	
 	// constructor
-	public Chunk(String fileId, String filename, int chunkNo, byte[] chunkData){
+	public Chunk(String fileId, int chunkNo, byte[] chunkData, int replicationDegree, int actualReplication){
 		
 		this.fileId = fileId;
-		this.filename = filename;
 		this.chunkNo = chunkNo;
 		this.chunkData = chunkData;
+		this.replicationDegree = replicationDegree;
+		this.actualReplication = actualReplication;
 		
 	}
 	
+	// change the actualReplication of the chunk
+	public void setActualRep(int newRep){
+		
+		this.actualReplication = newRep;
+		
+	}
+		
 	// to write the chunk in the disk
 	public void writeChunk(Chunk chunk) {
 		String outputFile = "E:\\" + chunk.fileId + "_" + chunk.chunkNo;
@@ -36,7 +46,7 @@ public class Chunk {
 			fileOutputStream.flush();
 			fileOutputStream.close();
 			
-			System.out.println("Output file : " + chunk.filename + " is successfully saved! ");
+			System.out.println("Output file : " + chunk.fileId + " is successfully saved! ");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

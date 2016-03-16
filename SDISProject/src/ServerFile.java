@@ -54,11 +54,14 @@ public class ServerFile {
 	}
 
 	// splits the file in chunks
-	public void splitFile(File inputFile) {
+	public void splitFile(File inputFile, Server server, int replicationDegree) {
 
 		FileInputStream inputStream;
 		String newFileName;
 		FileOutputStream filePart;
+		StringBuilder chunkNo = new StringBuilder();
+		StringBuilder replication = new StringBuilder();
+		String header;
 
 		System.out.println("...splitting file...");
 		
@@ -73,6 +76,20 @@ public class ServerFile {
 					readLength = fileSize;
 				}
 				
+				chunkNo.append(nChunks);
+				replication.append(server.replicationDegree);
+				
+				header = server.messageType + " " + 
+				"1.0" + " " + 
+						server.id + " " + 
+				server.serverFile.identifier + " " + 
+						chunkNo.toString() + " " + 
+				replication.toString() + " " + 
+						"CRLF"+"CRLF";
+				
+				byte[] head = new byte[25];
+				head = header.getBytes();
+				
 				byteChunkPart = new byte[readLength];
 				read = inputStream.read(byteChunkPart, 0, readLength);
 				fileSize -= read;
@@ -83,8 +100,15 @@ public class ServerFile {
 				
 				filePart = new FileOutputStream(new File(newFileName));
 				filePart.write(byteChunkPart);
+
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+				outputStream.write( head );
+				outputStream.write( byteChunkPart );
+				System.out.println("added header " + (nChunks-1));
+
+				byte[] completeChunk = outputStream.toByteArray( );
 				
-				Chunk chunk = new Chunk(identifier, inputFile.getName(), nChunks-1, byteChunkPart);
+				Chunk chunk = new Chunk(identifier, nChunks-1, completeChunk, replicationDegree, 0);
 				chunks.add(chunk);
 				
 				filePart.flush();
