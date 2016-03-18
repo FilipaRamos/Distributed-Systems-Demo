@@ -1,4 +1,5 @@
 import java.io.File;
+import java.net.SocketException;
 
 public class ThreadEngine implements Runnable {
 	// the operation to perform
@@ -65,13 +66,28 @@ public class ThreadEngine implements Runnable {
 				}
 			}
 		case "backup":
-			backupProtocol.backupProtocol(server, "send");
+			try {
+				backupProtocol.backupProtocol(server, "send");
+			} catch (SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 		case "listen backup":
 			int indexChunk = 0;
 			while(true){
-				indexChunk = backupProtocol.backupProtocol(server, "listen");
-				backupProtocol.controlProtocol(server, "reply backup", indexChunk);
+				try {
+					indexChunk = backupProtocol.backupProtocol(server, "listen");
+				} catch (SocketException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				try {
+					backupProtocol.controlProtocol(server, "reply backup", indexChunk);
+				} catch (SocketException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				System.out.println("Replied after recieving and storing a chunk!");
 			}
 		case "restore":

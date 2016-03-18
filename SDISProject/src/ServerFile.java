@@ -85,7 +85,7 @@ public class ServerFile {
 				server.serverFile.identifier + " " + 
 						chunkNo.toString() + " " + 
 				replication.toString() + " " + 
-						"CRLF"+"CRLF";
+						"\r\n"+"\r\n";
 				
 				byte[] head = new byte[25];
 				head = header.getBytes();

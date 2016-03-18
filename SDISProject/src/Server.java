@@ -64,9 +64,10 @@ public class Server {
 		server.multicast = new Multicast(server.controlAddress, server.controlPort, server.backupAddress,
 				server.backupPort, server.restoreAddress, server.restorePort);
 		
-		// split the file in chunks
-		server.serverFile.splitFile(server.file, server, server.replicationDegree);
-		server.ServerEngine(server, server.operation, server.serverFile, server.file);
+		if(args[8].equals("PUTCHUNK")){
+			server.serverFile.splitFile(server.file, server, server.replicationDegree);
+			server.ServerEngine(server, "backup", server.serverFile, server.file);
+		}
 
 	}
 
@@ -76,8 +77,8 @@ public class Server {
 		ThreadEngine threadManager1 = new ThreadEngine(request, this, file, f);
 		threadManager1.CreateThread(threadManager1);
 
-		// ThreadEngine threadManager2 = new ThreadEngine("request", this.multicast);
-		// threadManager2.CreateThread(threadManager2);
+		ThreadEngine listenThread = new ThreadEngine("listen backup", server, null, null);
+		listenThread.CreateThread(listenThread);
 
 	}
 	
@@ -89,11 +90,11 @@ public class Server {
 		String curDir = System.getProperty("user.dir");
 		System.out.println(curDir);
 
-		System.out.println("What's the operation to perform?");
+		//System.out.println("What's the operation to perform?");
 
 		Scanner input = new Scanner(System.in);
 		
-		operation = input.nextLine();
+		//operation = input.nextLine();
 		
 		System.out.println("What's the path of the file?");
 		
