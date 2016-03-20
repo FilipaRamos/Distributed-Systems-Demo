@@ -2,10 +2,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.util.ArrayList;
 
 public class CounterBackup implements Runnable {
 
 	public Server server;
+	public ArrayList<Message> sendQueue = new ArrayList<Message>(); 
 
 	public CounterBackup(Server server) {
 
@@ -37,7 +39,10 @@ public class CounterBackup implements Runnable {
 				server.multicast.backupSocket.receive(toReceive);
 
 				Message message = parseMessage(toReceive.getData());
-				server.messages.add(message);
+				
+				if(message != null){
+					server.messages.add(message);
+				}
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -86,6 +91,7 @@ public class CounterBackup implements Runnable {
 			System.out.println("Received message that is not supported by the system.... Bye....");
 			m = null;
 		}
+		
 		return m;
 
 	}

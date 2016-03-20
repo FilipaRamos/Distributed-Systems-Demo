@@ -8,7 +8,7 @@ public class FileEvent {
 	// to define the chunk's size
 	public int CHUNK_SIZE = 64000;
 	// the id of the server to which the original copy of the file belongs to
-	public int homeServer;
+	public String homeServer;
 	// the name of the file
 	public String name;
 	// the identifier of the file
@@ -25,7 +25,7 @@ public class FileEvent {
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 
 	// constructor
-	public FileEvent(int homeServer, String name, int size, String date) {
+	public FileEvent(String homeServer, String name, int size, String date) {
 
 		this.homeServer = homeServer;
 		this.name = name;
@@ -53,9 +53,6 @@ public class FileEvent {
 		FileInputStream inputStream;
 		String newFileName;
 		FileOutputStream filePart;
-		StringBuilder chunkNo = new StringBuilder();
-		StringBuilder replication = new StringBuilder();
-		String header;
 
 		System.out.println("...splitting file...");
 
@@ -70,15 +67,6 @@ public class FileEvent {
 					readLength = fileSize;
 				}
 
-				chunkNo.append(nChunks);
-				replication.append(replicationDegree);
-
-				header = server.operation + " " + "1.0" + " " + server.id + " " + identifier + " " + chunkNo.toString()
-						+ " " + replication.toString() + " " + "\r\n" + "\r\n";
-
-				byte[] head = new byte[25];
-				head = header.getBytes();
-
 				byteChunkPart = new byte[readLength];
 				read = inputStream.read(byteChunkPart, 0, readLength);
 				fileSize -= read;
@@ -90,14 +78,7 @@ public class FileEvent {
 				filePart = new FileOutputStream(new File(newFileName));
 				filePart.write(byteChunkPart);
 
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-				outputStream.write(head);
-				outputStream.write(byteChunkPart);
-				System.out.println("added header " + (nChunks - 1));
-
-				byte[] completeChunk = outputStream.toByteArray();
-
-				Chunk chunk = new Chunk(identifier, nChunks - 1, completeChunk, replicationDegree, 0);
+				Chunk chunk = new Chunk(identifier, nChunks - 1, byteChunkPart, replicationDegree, 0);
 				chunks.add(chunk);
 
 				filePart.flush();

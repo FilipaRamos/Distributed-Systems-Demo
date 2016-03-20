@@ -36,7 +36,9 @@ public class CounterControl implements Runnable {
 				String received = new String(toReceive.getData()).substring(0, toReceive.getLength());
 				
 				Message message = parseMessage(received);
-				server.messages.add(message);
+				
+				if(message != null)
+					server.messages.add(message);
 				
 			} catch (SocketTimeoutException e) {
 				// TODO Auto-generated catch block

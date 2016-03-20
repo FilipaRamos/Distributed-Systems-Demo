@@ -8,9 +8,10 @@ public class Message {
 	public int chunkNr;
 	public int replicationDegree;
 	public byte[] data;
-	
-	public Message(String type, String version, String senderId, String fileId, int chunkNr, int replicationDegree, byte[] data){
-		
+
+	public Message(String type, String version, String senderId, String fileId, int chunkNr, int replicationDegree,
+			byte[] data) {
+
 		this.type = type;
 		this.version = version;
 		this.senderId = senderId;
@@ -18,10 +19,7 @@ public class Message {
 		this.chunkNr = chunkNr;
 		this.replicationDegree = replicationDegree;
 		this.data = data;
-	
+
 	}
-	
-	
-	
-	
+
 }
