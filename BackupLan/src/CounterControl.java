@@ -1,0 +1,80 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.SocketTimeoutException;
+
+public class CounterControl implements Runnable {
+	
+	public Server server;
+
+	public CounterControl(Server server){
+		
+		this.server = server;
+		
+	}
+	
+	public void createCounterControl(){
+		
+		Thread counterControl = new Thread(this);
+		counterControl.start();
+		
+	}
+	
+	@Override
+	public void run() {
+		
+		byte[] buffer;
+		DatagramPacket toReceive;
+		
+		while(true){
+			
+			buffer = new byte[256];
+			toReceive = new DatagramPacket(buffer, buffer.length, server.multicast.controlIP, server.multicast.controlPort);
+			
+			try {
+				server.multicast.controlSocket.receive(toReceive);
+				
+				String received = new String(toReceive.getData()).substring(0, toReceive.getLength());
+				
+				Message message = parseMessage(received);
+				server.messages.add(message);
+				
+			} catch (SocketTimeoutException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
+	}
+	
+	public Message parseMessage(String message){
+		
+		Message m;
+		String[] messageSplit;
+		messageSplit = message.split(" +");
+		
+		if(messageSplit[0].equals("STORED") || messageSplit[0].equals("GETCHUNK") || messageSplit[0].equals("REMOVED")){
+			
+			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3], Integer.parseInt(messageSplit[4]), -1, null);
+			
+		} else if(messageSplit[0].equals("DELETE")){
+			
+			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3], -1, -1, null);
+			
+		}
+		else{
+			System.out.println("Received message that is not supported by the system.... Bye....");
+			m = null;
+		}
+		
+		return m;
+		
+		
+	}
+
+	
+	
+}
