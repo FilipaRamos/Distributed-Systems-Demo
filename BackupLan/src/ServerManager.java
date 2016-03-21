@@ -1,11 +1,14 @@
+import java.util.ArrayList;
 
 public class ServerManager implements Runnable{
 
 	public Server server;
+	public ArrayList<Message> messages;
 
 	public ServerManager(Server server) {
-
+		messages = new ArrayList<Message>();
 		this.server = server;
+		startServerManager();
 
 	}
 	
@@ -15,53 +18,47 @@ public class ServerManager implements Runnable{
 		new Thread(this).start();
 		
 	}
+	
+	@Override
+	public void run() {
+		manageSendingQueues();
+	}
 
 	public void manageSendingQueues() {
-
+		
 		while (true) {
 
-			for (int i = 0; i < server.messages.size(); i++) {
+			for (int i = 0; i < messages.size(); i++) {
 
 				// found a putchunk message so the chunk needs to be created and
 				// stored
-				if (server.messages.get(i).type.equals("PUTCHUNK")) {
+				if (messages.get(i).type.equals("PUTCHUNK")) {
+					
+					if(!messages.get(i).senderId.equals(server.id)){
 
-					System.out.println("Found a PUTCHUNK request! Storing chunk now...");
-					managePutchunk(i);
-
-				} else if (server.messages.get(i).type.equals("GETCHUNK")) {
-
-					// mdr send queue
-
-				} else if (server.messages.get(i).type.equals("CHUNK")) {
-
-					// mdr chunk history
-
-				}
-
+						System.out.println("Found a PUTCHUNK request! Storing chunk now...");
+						managePutchunk(i);
+						messages.remove(i);
+						
+					}
+				} 
 			}
-
 		}
 
 	}
 
 	public void managePutchunk(int i) {
 
-		Chunk chunk = new Chunk(server.messages.get(i).fileId, server.messages.get(i).chunkNr,
-				server.messages.get(i).data, server.messages.get(i).replicationDegree, 1);
+		Chunk chunk = new Chunk(messages.get(i).fileId, messages.get(i).chunkNr,
+				messages.get(i).data, messages.get(i).replicationDegree, 1);
 		server.chunks.add(chunk);
 		chunk.writeChunk();
 
-		Message message = new Message("STORED", server.messages.get(i).version, server.id,
-				server.messages.get(i).fileId, server.messages.get(i).chunkNr, 1, null);
+		Message message = new Message("STORED", messages.get(i).version, server.id,
+				messages.get(i).fileId, messages.get(i).chunkNr, 1, null);
 
 		server.controlP.sendQueue.add(message);
 
-	}
-
-	@Override
-	public void run() {
-		manageSendingQueues();
 	}
 
 }

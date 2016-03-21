@@ -6,18 +6,21 @@ import java.util.ArrayList;
 public class ProcessBackup implements Runnable {
 
 	public Server server;
+	public ServerManager serverManager;
 	public ArrayList<String> receivedStored = new ArrayList<String>();
 
 	public int waitingTime;
 	public int nrTries;
 
-	public ProcessBackup(Server server) {
+	public ProcessBackup(Server server, ServerManager serverManager) {
 		this.server = server;
+		this.serverManager = serverManager;
+		
 		waitingTime = 1000;
 		nrTries = 0;
-		
+
 		processBackup();
-		
+
 	}
 
 	public void processBackup() {
@@ -26,35 +29,43 @@ public class ProcessBackup implements Runnable {
 		new Thread(this).start();
 
 	}
-	
+
 	@Override
 	public void run() {
-		System.out.println("Thread running");
+
 		processRequest();
 
 	}
 
 	public void processRequest() {
-		
-		System.out.println(server.requests);
 
 		int nrChunks = 0;
 		while (nrChunks < server.fileEvent.chunksNo) {
-			sendChunk(server, server.requests.get(nrChunks));
-			System.out.println("Processed chunk nr " + nrChunks);
-			nrChunks++;
+			if(sendChunk(server, server.requests.get(nrChunks)) == 1){
+				System.out.println("Processed chunk nr " + nrChunks);
+				nrChunks++;
+				receivedStored.clear();
+				waitingTime = 1000;
+				nrTries = 0;
+			}
+			if(nrTries >= 5){
+				nrChunks++;
+			}
 		}
+
+		server.requests.clear();
+		System.out.println("PUTCHUNK request was successfully processed!");
 
 	}
 
-	public void sendChunk(Server server, Message request) {
+	public int sendChunk(Server server, Message request) {
 
 		String header = request.type + " " + request.version + " " + server.id + " " + request.fileId + " "
-				+ request.chunkNr + " " + request.replicationDegree + " " + "\r\n\r\n";
+				+ request.chunkNr + " " + request.replicationDegree + " " + "\r\n" + "\r\n";
 
 		byte[] head = new byte[25];
 		head = header.getBytes();
-		
+
 		System.out.println("Chunk header formed");
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -79,38 +90,32 @@ public class ProcessBackup implements Runnable {
 		}
 
 		System.out.println("Sent chunk nr " + request.chunkNr);
-		
-		verifyRepDeg(request);
-		
-		receivedStored.clear();
-		waitingTime = 1000;
-		nrTries = 0;
+
+		return verifyRepDeg(request);
 
 	}
 
-	public void verifyRepDeg(Message message) {
-		
-		while (nrTries < 5) {
-			try {
-				Thread.sleep(waitingTime);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	public int verifyRepDeg(Message message) {
 
-			for (int i = 0; i < server.messages.size(); i++) {
+		try {
+			Thread.sleep(waitingTime);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-				if (server.messages.get(i).type.equals("STORED")) {
+		for (int i = 0; i < serverManager.messages.size(); i++) {
 
-					if (server.messages.get(i).fileId.equals(message.fileId)
-							&& server.messages.get(i).chunkNr == message.chunkNr) {
+			if (serverManager.messages.get(i).type.equals("STORED")) {
 
-						if (!receivedStored.contains(server.messages.get(i).senderId) || server.messages.get(i).senderId != server.id) {
+				if (serverManager.messages.get(i).fileId.equals(message.fileId)
+						&& serverManager.messages.get(i).chunkNr == message.chunkNr) {
 
-							System.out.println("Received one confirmation that the chunk was stored.");
-							receivedStored.add(server.messages.get(i).senderId);
+					if (!(receivedStored.contains(serverManager.messages.get(i).senderId))
+							&& !(serverManager.messages.get(i).senderId.equals(server.id))) {
 
-						}
+						System.out.println("Received one confirmation that the chunk was stored.");
+						receivedStored.add(serverManager.messages.get(i).senderId);
 
 					}
 
@@ -118,21 +123,22 @@ public class ProcessBackup implements Runnable {
 
 			}
 
-			if (receivedStored.size() < message.replicationDegree) {
+		}
 
-				System.out.println("Desired replication degree was not achieved! Trying again...");
-				nrTries++;
-				waitingTime = waitingTime + 2*nrTries;
-				server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
-				
-			}
-			else{
-				
-				System.out.println("Desired replication degree was achieved!");
-				server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
-				break;
-				
-			}
+		if (receivedStored.size() < message.replicationDegree) {
+
+			System.out.println("Desired replication degree was not achieved! Trying again...");
+			nrTries++;
+			waitingTime = waitingTime * 2 * nrTries;
+			server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			return -1;
+
+		} else {
+
+			System.out.println("Desired replication degree was achieved!");
+			server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			return 1;
+
 		}
 
 	}

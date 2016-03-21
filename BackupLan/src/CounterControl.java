@@ -5,10 +5,12 @@ import java.net.SocketTimeoutException;
 public class CounterControl implements Runnable {
 	
 	public Server server;
+	public ServerManager serverManager;
 
-	public CounterControl(Server server){
+	public CounterControl(Server server, ServerManager serverManager){
 		
 		this.server = server;
+		this.serverManager = serverManager;
 		createCounterControl();
 		
 	}
@@ -40,7 +42,7 @@ public class CounterControl implements Runnable {
 				
 				if(message != null){
 					System.out.println("Control Counter has received a message of the type " + message.type);
-					server.messages.add(message);
+					serverManager.messages.add(message);
 				}
 				
 			} catch (SocketTimeoutException e) {

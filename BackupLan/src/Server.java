@@ -21,8 +21,7 @@ public class Server {
 
 	public Multicast multicast = new Multicast("224.0.0.3", 8884, "224.0.0.26", 8885, "224.0.0.116", 8886);
 	public FileEvent fileEvent;
-	
-	public ArrayList<Message> messages = new ArrayList<Message>();
+
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 	public ArrayList<Message> requests = new ArrayList<Message>();
 
@@ -43,10 +42,10 @@ public class Server {
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			server.fileEvent = new FileEvent(server.id, file.getName(), (int) file.length(),
-					sdf.format(file.lastModified()));
+					sdf.format(file.lastModified()), server.replicationDegree);
 			server.fileEvent.splitFile(file, server);
 			
-			server.backupP = new ProcessBackup(server);
+			server.backupP = new ProcessBackup(server, server.serverManager);
 
 		}
 
@@ -71,15 +70,15 @@ public class Server {
 
 	public void startEngine() {
 
+		// server manager
+		serverManager = new ServerManager(this);
+		
 		// create the counters
-		controlC = new CounterControl(this);
-		backupC = new CounterBackup(this);
+		controlC = new CounterControl(this, serverManager);
+		backupC = new CounterBackup(this, serverManager);
 		
 		// create the processors
 		controlP = new ProcessControl(this);
-		
-		// server manager
-		serverManager = new ServerManager(this);
 
 	}
 

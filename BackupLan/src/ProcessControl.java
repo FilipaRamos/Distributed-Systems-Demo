@@ -16,8 +16,8 @@ public class ProcessControl implements Runnable {
 
 	public void processControlQueue() {
 
-		System.out.println("Backup Counter has received a message of the type ");
-		Thread processControl = new Thread();
+		System.out.println("Control processor is kicking off");
+		Thread processControl = new Thread(this);
 		processControl.start();
 
 	}
@@ -51,6 +51,8 @@ public class ProcessControl implements Runnable {
 					}catch(IOException e){
 						e.printStackTrace();
 					}
+					
+					sendQueue.remove(i);
 
 				}
 

@@ -6,10 +6,12 @@ import java.net.DatagramPacket;
 public class CounterBackup implements Runnable {
 
 	public Server server;
+	public ServerManager serverManager;
 
-	public CounterBackup(Server server) {
+	public CounterBackup(Server server, ServerManager serverManager) {
 
 		this.server = server;
+		this.serverManager = serverManager;
 		createCounterBackup();
 		
 	}
@@ -41,7 +43,7 @@ public class CounterBackup implements Runnable {
 				
 				if(message != null){				
 					System.out.println("Backup Counter has received a message of the type " + message.type);
-					server.messages.add(message);
+					serverManager.messages.add(message);
 				}
 
 			} catch (IOException e) {

@@ -25,13 +25,14 @@ public class FileEvent {
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 
 	// constructor
-	public FileEvent(String homeServer, String name, int size, String date) {
+	public FileEvent(String homeServer, String name, int size, String date, int replicationDegree) {
 
 		this.homeServer = homeServer;
 		this.name = name;
 		this.size = size;
 		this.date = date;
 		this.chunksNo = (this.size / (64000)) + 1;
+		this.replicationDegree = replicationDegree;
 
 		try {
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -51,8 +52,6 @@ public class FileEvent {
 	public void splitFile(File inputFile, Server server) {
 
 		FileInputStream inputStream;
-		String newFileName;
-		FileOutputStream filePart;
 
 		System.out.println("...splitting file...");
 
@@ -73,23 +72,18 @@ public class FileEvent {
 
 				assert (read == byteChunkPart.length);
 				nChunks++;
-				newFileName = identifier + "_" + Integer.toString(nChunks - 1);
-
-				filePart = new FileOutputStream(new File(newFileName));
-				filePart.write(byteChunkPart);
 
 				Chunk chunk = new Chunk(identifier, nChunks - 1, byteChunkPart, replicationDegree, 0);
 				chunks.add(chunk);
 				
 				Message message = new Message("PUTCHUNK", "1.0", server.id, identifier, nChunks - 1, replicationDegree, byteChunkPart);
 				server.requests.add(message);
-				
-				filePart.flush();
-				filePart.close();
+			
 				byteChunkPart = null;
-				filePart = null;
 			}
+			
 			inputStream.close();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
