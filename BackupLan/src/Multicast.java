@@ -3,9 +3,6 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 public class Multicast {
-	// waiting time for the socket
-	public int waitingTime;
-
 	// Control Channel Address and Port
 	public String controlAddress;
 	public int controlPort;
@@ -49,15 +46,8 @@ public class Multicast {
 
 		System.out.println("Restore Channel Address and Port:");
 		System.out.println(this.restoreAddress + " " + this.restorePort);
-
-		this.waitingTime = 60000;
-
-	}
-
-	// set the waiting time
-	public void setWaitingTime(int time) {
-
-		waitingTime = time;
+		
+		setSockets();
 
 	}
 	
@@ -69,7 +59,6 @@ public class Multicast {
 
 			// set the time to live for the socket
 			controlSocket.setTimeToLive(1);
-			controlSocket.setSoTimeout(waitingTime);
 			
 			controlSocket.joinGroup(controlIP);
 			
@@ -77,7 +66,6 @@ public class Multicast {
 			backupIP = InetAddress.getByName(backupAddress);
 			
 			backupSocket.setTimeToLive(1);
-			backupSocket.setSoTimeout(waitingTime);
 			
 			backupSocket.joinGroup(backupIP);
 			
@@ -85,7 +73,6 @@ public class Multicast {
 			restoreIP = InetAddress.getByName(restoreAddress);
 			
 			restoreSocket.setTimeToLive(1);
-			restoreSocket.setSoTimeout(waitingTime);
 			
 			restoreSocket.joinGroup(restoreIP);
 			

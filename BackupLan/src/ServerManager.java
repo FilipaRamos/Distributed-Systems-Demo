@@ -1,5 +1,5 @@
 
-public class ServerManager {
+public class ServerManager implements Runnable{
 
 	public Server server;
 
@@ -8,25 +8,37 @@ public class ServerManager {
 		this.server = server;
 
 	}
+	
+	public void startServerManager(){
+		
+		System.out.println("Server manager kicking off!");
+		new Thread(this).start();
+		
+	}
 
 	public void manageSendingQueues() {
 
-		for (int i = 0; i < server.messages.size(); i++) {
+		while (true) {
 
-			// found a putchunk message so the chunk needs to be created and
-			// stored
-			if (server.messages.get(i).type.equals("PUTCHUNK")) {
-				
-				managePutchunk(i);
+			for (int i = 0; i < server.messages.size(); i++) {
 
-			} else if (server.messages.get(i).type.equals("GETCHUNK")) {
+				// found a putchunk message so the chunk needs to be created and
+				// stored
+				if (server.messages.get(i).type.equals("PUTCHUNK")) {
 
-				// mdr send queue
-				
-			} else if (server.messages.get(i).type.equals("CHUNK")){
-				
-				// mdr chunk history
-				
+					System.out.println("Found a PUTCHUNK request! Storing chunk now...");
+					managePutchunk(i);
+
+				} else if (server.messages.get(i).type.equals("GETCHUNK")) {
+
+					// mdr send queue
+
+				} else if (server.messages.get(i).type.equals("CHUNK")) {
+
+					// mdr chunk history
+
+				}
+
 			}
 
 		}
@@ -45,6 +57,11 @@ public class ServerManager {
 
 		server.controlP.sendQueue.add(message);
 
+	}
+
+	@Override
+	public void run() {
+		manageSendingQueues();
 	}
 
 }

@@ -2,23 +2,22 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.util.ArrayList;
 
 public class CounterBackup implements Runnable {
 
 	public Server server;
-	public ArrayList<Message> sendQueue = new ArrayList<Message>(); 
 
 	public CounterBackup(Server server) {
 
 		this.server = server;
-
+		createCounterBackup();
+		
 	}
 
-	public void createCounterControl() {
+	public void createCounterBackup() {
 
-		Thread counterBackup = new Thread(this);
-		counterBackup.start();
+		System.out.println("Setting up the Backup Counter");
+		new Thread(this).start();
 
 	}
 
@@ -40,7 +39,8 @@ public class CounterBackup implements Runnable {
 
 				Message message = parseMessage(toReceive.getData());
 				
-				if(message != null){
+				if(message != null){				
+					System.out.println("Backup Counter has received a message of the type " + message.type);
 					server.messages.add(message);
 				}
 

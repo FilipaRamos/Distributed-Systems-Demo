@@ -13,22 +13,35 @@ public class ProcessBackup implements Runnable {
 
 	public ProcessBackup(Server server) {
 		this.server = server;
-		this.waitingTime = 1000;
-		this.nrTries = 0;
+		waitingTime = 1000;
+		nrTries = 0;
+		
+		processBackup();
+		
 	}
 
-	public void processControlQueue() {
+	public void processBackup() {
 
-		Thread processBackup = new Thread();
-		processBackup.start();
+		System.out.println("Lauching the backup processor to process a PUTCHUNK request");
+		new Thread(this).start();
+
+	}
+	
+	@Override
+	public void run() {
+		System.out.println("Thread running");
+		processRequest();
 
 	}
 
 	public void processRequest() {
+		
+		System.out.println(server.requests);
 
 		int nrChunks = 0;
 		while (nrChunks < server.fileEvent.chunksNo) {
 			sendChunk(server, server.requests.get(nrChunks));
+			System.out.println("Processed chunk nr " + nrChunks);
 			nrChunks++;
 		}
 
@@ -41,6 +54,8 @@ public class ProcessBackup implements Runnable {
 
 		byte[] head = new byte[25];
 		head = header.getBytes();
+		
+		System.out.println("Chunk header formed");
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
@@ -64,10 +79,12 @@ public class ProcessBackup implements Runnable {
 		}
 
 		System.out.println("Sent chunk nr " + request.chunkNr);
-
+		
 		verifyRepDeg(request);
 		
 		receivedStored.clear();
+		waitingTime = 1000;
+		nrTries = 0;
 
 	}
 
@@ -110,18 +127,13 @@ public class ProcessBackup implements Runnable {
 				
 			}
 			else{
+				
 				System.out.println("Desired replication degree was achieved!");
 				server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 				break;
+				
 			}
 		}
-
-	}
-
-	@Override
-	public void run() {
-
-		processRequest();
 
 	}
 

@@ -16,6 +16,8 @@ public class Server {
 
 	public ProcessControl controlP;
 	public ProcessBackup backupP;
+	
+	public ServerManager serverManager;
 
 	public Multicast multicast = new Multicast("224.0.0.3", 8884, "224.0.0.26", 8885, "224.0.0.116", 8886);
 	public FileEvent fileEvent;
@@ -70,11 +72,14 @@ public class Server {
 	public void startEngine() {
 
 		// create the counters
-		this.controlC = new CounterControl(this);
-		this.backupC = new CounterBackup(this);
+		controlC = new CounterControl(this);
+		backupC = new CounterBackup(this);
 		
 		// create the processors
-		this.controlP = new ProcessControl(this);
+		controlP = new ProcessControl(this);
+		
+		// server manager
+		serverManager = new ServerManager(this);
 
 	}
 

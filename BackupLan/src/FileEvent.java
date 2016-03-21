@@ -80,7 +80,10 @@ public class FileEvent {
 
 				Chunk chunk = new Chunk(identifier, nChunks - 1, byteChunkPart, replicationDegree, 0);
 				chunks.add(chunk);
-
+				
+				Message message = new Message("PUTCHUNK", "1.0", server.id, identifier, nChunks - 1, replicationDegree, byteChunkPart);
+				server.requests.add(message);
+				
 				filePart.flush();
 				filePart.close();
 				byteChunkPart = null;

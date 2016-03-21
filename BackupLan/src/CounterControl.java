@@ -9,13 +9,14 @@ public class CounterControl implements Runnable {
 	public CounterControl(Server server){
 		
 		this.server = server;
+		createCounterControl();
 		
 	}
 	
 	public void createCounterControl(){
 		
-		Thread counterControl = new Thread(this);
-		counterControl.start();
+		System.out.println("Setting up the Control Counter");
+		new Thread(this).start();
 		
 	}
 	
@@ -37,8 +38,10 @@ public class CounterControl implements Runnable {
 				
 				Message message = parseMessage(received);
 				
-				if(message != null)
+				if(message != null){
+					System.out.println("Control Counter has received a message of the type " + message.type);
 					server.messages.add(message);
+				}
 				
 			} catch (SocketTimeoutException e) {
 				// TODO Auto-generated catch block

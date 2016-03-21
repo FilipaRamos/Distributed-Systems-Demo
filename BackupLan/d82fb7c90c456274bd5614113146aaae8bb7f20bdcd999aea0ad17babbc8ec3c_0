@@ -1,0 +1,7 @@
+/* CN2 */
+separa(L, P, LR) :- separa(L, P, L1, L2), append(L1, L2, LR).
+separa([X|Xs], P, [X|L1], L2) :-
+		G =..[P,X], G, !,
+		separa(Xs, P, L1, L2).
+separa([X|Xs], P, L1, [X|L2]) :- separa(Xs, P, L1, L2).
+separa([],_,[],[]).
