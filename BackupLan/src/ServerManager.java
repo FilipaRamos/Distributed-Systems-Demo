@@ -21,10 +21,6 @@ public class ServerManager implements Runnable{
 	
 	@Override
 	public void run() {
-		manageSendingQueues();
-	}
-
-	public void manageSendingQueues() {
 		
 		while (true) {
 
@@ -43,8 +39,14 @@ public class ServerManager implements Runnable{
 					}
 				} 
 			}
+			
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-
 	}
 
 	public void managePutchunk(int i) {

@@ -13,7 +13,7 @@ public class CounterBackup implements Runnable {
 		this.server = server;
 		this.serverManager = serverManager;
 		createCounterBackup();
-		
+
 	}
 
 	public void createCounterBackup() {
@@ -40,9 +40,10 @@ public class CounterBackup implements Runnable {
 				server.multicast.backupSocket.receive(toReceive);
 
 				Message message = parseMessage(toReceive.getData());
-				
-				if(message != null){				
-					System.out.println("Backup Counter has received a message of the type " + message.type);
+
+				if (message != null) {
+					System.out.println("Backup Counter has received a message of the type " + message.type + " "
+							+ message.senderId);
 					serverManager.messages.add(message);
 				}
 
@@ -88,12 +89,12 @@ public class CounterBackup implements Runnable {
 
 			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3],
 					Integer.parseInt(messageSplit[4]), Integer.parseInt(messageSplit[5]), chunkData);
-			
+
 		} else {
 			System.out.println("Received message that is not supported by the system.... Bye....");
 			m = null;
 		}
-		
+
 		return m;
 
 	}
