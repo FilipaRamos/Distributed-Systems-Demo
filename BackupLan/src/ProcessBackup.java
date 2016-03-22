@@ -7,14 +7,16 @@ public class ProcessBackup implements Runnable {
 
 	public Server server;
 	public ServerManager serverManager;
+	public FileEvent fileEvent;
 	public ArrayList<String> receivedStored = new ArrayList<String>();
 
 	public int waitingTime;
 	public int nrTries;
 
-	public ProcessBackup(Server server, ServerManager serverManager) {
+	public ProcessBackup(Server server, ServerManager serverManager, FileEvent fileEvent) {
 		this.server = server;
 		this.serverManager = serverManager;
+		this.fileEvent = fileEvent;
 		
 		waitingTime = 1000;
 		nrTries = 0;
@@ -40,7 +42,7 @@ public class ProcessBackup implements Runnable {
 	public void processRequest() {
 
 		int nrChunks = 0;
-		while (nrChunks < server.fileEvent.chunksNo) {
+		while (nrChunks < fileEvent.chunksNo) {
 			if(sendChunk(server, server.requests.get(nrChunks)) == 1){
 				System.out.println("Processed chunk nr " + nrChunks);
 				nrChunks++;
@@ -130,13 +132,13 @@ public class ProcessBackup implements Runnable {
 			System.out.println("Desired replication degree was not achieved! Trying again...");
 			nrTries++;
 			waitingTime = waitingTime * 2 * nrTries;
-			server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 			return -1;
 
 		} else {
 
 			System.out.println("Desired replication degree was achieved!");
-			server.fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 			return 1;
 
 		}
