@@ -29,7 +29,7 @@ public class CounterControl implements Runnable {
 
 		while (true) {
 
-			buffer = new byte[256];
+			buffer = new byte[2 << 16];
 			toReceive = new DatagramPacket(buffer, buffer.length, server.multicast.controlIP,
 					server.multicast.controlPort);
 

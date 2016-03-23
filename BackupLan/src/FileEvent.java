@@ -75,20 +75,44 @@ public class FileEvent {
 
 				Chunk chunk = new Chunk(identifier, nChunks - 1, byteChunkPart, replicationDegree, 0);
 				chunks.add(chunk);
-				
-				Message message = new Message("PUTCHUNK", "1.0", server.id, identifier, nChunks - 1, replicationDegree, byteChunkPart);
+
+				Message message = new Message("PUTCHUNK", "1.0", server.id, identifier, nChunks - 1, replicationDegree,
+						byteChunkPart);
 				server.requests.add(message);
-			
+
 				byteChunkPart = null;
 			}
-			
+
 			inputStream.close();
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		System.out.println("splitted file");
 
+	}
+
+	// merge the file back together
+	public void mergeFile() {
+
+		File file = new File(name);
+		FileOutputStream fos;
+
+		try {
+			fos = new FileOutputStream(file, true);
+			
+			for(int i = 0; i < chunks.size(); i++){
+				fos.write(chunks.get(i).data);
+				fos.close();
+			}
+			
+			fos.flush();
+			fos.close();
+			fos = null;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	// hash the string (to create file identifier)

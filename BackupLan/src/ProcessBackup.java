@@ -56,7 +56,6 @@ public class ProcessBackup implements Runnable {
 		}
 
 		server.requests.clear();
-		System.out.println("PUTCHUNK request was successfully processed!");
 
 	}
 
@@ -65,7 +64,7 @@ public class ProcessBackup implements Runnable {
 		String header = request.type + " " + request.version + " " + server.id + " " + request.fileId + " "
 				+ request.chunkNr + " " + request.replicationDegree + " " + "\r\n" + "\r\n";
 
-		byte[] head = new byte[25];
+		byte[] head = new byte[35];
 		head = header.getBytes();
 
 		System.out.println("Chunk header formed");
@@ -80,7 +79,6 @@ public class ProcessBackup implements Runnable {
 		}
 
 		byte[] buffer = outputStream.toByteArray();
-
 		DatagramPacket toSend = new DatagramPacket(buffer, buffer.length, server.multicast.backupIP,
 				server.multicast.backupPort);
 
@@ -102,7 +100,6 @@ public class ProcessBackup implements Runnable {
 		try {
 			Thread.sleep(waitingTime);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

@@ -33,14 +33,14 @@ public class CounterBackup implements Runnable {
 
 			try {
 
-				buffer = new byte[256];
+				buffer = new byte[2 << 16];
 				toReceive = new DatagramPacket(buffer, buffer.length, server.multicast.backupIP,
 						server.multicast.backupPort);
 
 				server.multicast.backupSocket.receive(toReceive);
 
-				Message message = parseMessage(toReceive.getData());
-
+				Message message = parseMessage(toReceive.getData(), toReceive.getLength());
+				System.out.println("received: " + new String(message.data));
 				if (message != null) {
 					System.out.println("Backup Counter has received a message of the type " + message.type + " "
 							+ message.senderId);
@@ -54,7 +54,7 @@ public class CounterBackup implements Runnable {
 		}
 	}
 
-	public Message parseMessage(byte[] message) throws UnsupportedEncodingException {
+	public Message parseMessage(byte[] message, int length) throws UnsupportedEncodingException {
 
 		Message m;
 
@@ -62,23 +62,24 @@ public class CounterBackup implements Runnable {
 		byte[] chunkData = null;
 		byte[] header = null;
 
-		for (int i = 0; i < message.length - 1; i++) {
+		for (int i = 0; i < length - 1; i++) {
 
-			if (message[i] == 0xd) {
+			if (message[i] == 0xd && message[i + 1] == 0xa) {
 
-				if (message[i + 1] == 0xa) {
+				if (message[i + 2] == 0xd && message[i + 3] == 0xa) {
 
 					header = new byte[i + 3];
-					chunkData = new byte[message.length - (i + 1)];
+					chunkData = new byte[length - (i + 1)];
 
 					data.read(header, 0, i + 3);
-					data.read(chunkData, 0, message.length - (i + 1));
+					data.read(chunkData, 0, length - (i + 1));
 					break;
 				}
 			}
 
 		}
-
+		// vê lá e depois diz alguma coisa, mas o length tinhas mal, porque o
+		// tamanho do packet não é igual ao tamanho do array
 		// split the information on the received request
 		String headerString = new String(header, "UTF-8");
 		String[] messageSplit;

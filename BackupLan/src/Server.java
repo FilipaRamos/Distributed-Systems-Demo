@@ -23,9 +23,14 @@ public class Server {
 
 	public Multicast multicast = new Multicast("224.0.0.3", 8884, "224.0.0.26", 8885, "224.0.0.116", 8886);
 
+	// files that were asked to be stored by this server
 	public ArrayList<FileEvent> files = new ArrayList<FileEvent>();
+	// chunks that were stored by this server 
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+	// requests that the user has made
 	public ArrayList<Message> requests = new ArrayList<Message>();
+	// file to restore
+	public FileEvent file = null;
 	
 	public Scanner in = new Scanner(System.in);;
 
@@ -60,15 +65,18 @@ public class Server {
 			} else if (server.operation.equals("GETCHUNK")) {
 
 				int index = server.findFile(server.path);
-				FileEvent file = server.files.get(index);
+				server.file = server.files.get(index);
+				server.files.get(index).chunks.clear();
 
 				// add the messages for each chunk
-				for (int i = 0; i < file.chunksNo; i++) {
+				for (int i = 0; i < server.file.chunksNo; i++) {
 
-					Message message = new Message("GETCHUNK", "1.0", server.id, file.identifier, i, 0, null);
+					Message message = new Message("GETCHUNK", "1.0", server.id, server.file.identifier, i, 0, null);
 					server.controlP.sendQueue.add(message);
 
 				}
+				
+				server.file.mergeFile();
 				
 				System.out.println("Restore was successful!");
 

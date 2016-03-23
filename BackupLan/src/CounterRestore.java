@@ -31,32 +31,28 @@ public class CounterRestore implements Runnable {
 
 		while (true) {
 
-			buffer = new byte[256];
+			buffer = new byte[2 << 16];
 			toReceive = new DatagramPacket(buffer, buffer.length, server.multicast.restoreIP,
 					server.multicast.restorePort);
 
 			try {
 				server.multicast.restoreSocket.receive(toReceive);
 
-				Message message = parseMessage(toReceive.getData());
+				if(parseMessage(toReceive.getData()) == 1){
 
-				if (message != null) {
-					System.out.println("Restore Counter has received a message of the type " + message.type);
-					serverManager.messages.add(message);
+					System.out.println("Restore Counter has received a message of the type CHUNK");
+				
 				}
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				
 			}
 
 		}
 
 	}
 
-	public Message parseMessage(byte[] message) throws UnsupportedEncodingException {
-
-		Message m;
+	public int parseMessage(byte[] message) throws UnsupportedEncodingException {
 
 		ByteArrayInputStream data = new ByteArrayInputStream(message);
 		byte[] chunkData = null;
@@ -64,9 +60,9 @@ public class CounterRestore implements Runnable {
 
 		for (int i = 0; i < message.length - 1; i++) {
 
-			if (message[i] == 0xd) {
+			if (message[i] == 0xd && message[i + 1] == 0xa) {
 
-				if (message[i + 1] == 0xa) {
+				if (message[i + 2] == 0xd && message[i + 3] == 0xa) {
 
 					header = new byte[i + 3];
 					chunkData = new byte[message.length - (i + 1)];
@@ -87,15 +83,20 @@ public class CounterRestore implements Runnable {
 
 		if (messageSplit[0].equals("CHUNK")) {
 
-			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3],
-					Integer.parseInt(messageSplit[4]), 0, chunkData);
+			if (messageSplit[3].equals(server.file.identifier) && !messageSplit[2].equals(server.id)) {
+
+				Chunk chunk = new Chunk(server.file.identifier, Integer.parseInt(messageSplit[4]), chunkData, 1, 1);
+				server.file.chunks.add(chunk);
+				return 1;
+				
+			}
+			
+			return -1;
 
 		} else {
 			System.out.println("Received message that is not supported by the system.... Bye....");
-			m = null;
+			return -1;
 		}
-
-		return m;
 
 	}
 

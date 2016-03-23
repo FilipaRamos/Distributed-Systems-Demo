@@ -36,6 +36,7 @@ public class ServerManager implements Runnable {
 					if (!messages.get(i).senderId.equals(server.id)) {
 
 						System.out.println("Found a PUTCHUNK request! Storing chunk now...");
+						System.out.println(messages.get(i).fileId + " " + messages.get(i).chunkNr);
 						managePutchunk(i);
 						messages.remove(i);
 

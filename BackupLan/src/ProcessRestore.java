@@ -85,11 +85,10 @@ public class ProcessRestore implements Runnable {
 	}
 
 	public void sendChunk(Chunk chunk, Message message) {
-
 		String header = message.type + " " + message.version + " " + server.id + " " + message.fileId + " "
 				+ message.chunkNr + " " + "\r\n" + "\r\n";
 
-		byte[] head = new byte[25];
+		byte[] head = new byte[35];
 		head = header.getBytes();
 
 		System.out.println("Restore chunk header formed");
