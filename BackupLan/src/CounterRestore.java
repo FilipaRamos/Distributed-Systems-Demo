@@ -85,7 +85,7 @@ public class CounterRestore implements Runnable {
 
 		messageSplit = headerString.split(" +");
 
-		if (messageSplit[0].equals("GETCHUNK")) {
+		if (messageSplit[0].equals("CHUNK")) {
 
 			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3],
 					Integer.parseInt(messageSplit[4]), 0, chunkData);

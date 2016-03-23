@@ -38,6 +38,8 @@ public class Server {
 		server.startEngine();
 		
 		server.parseInput(server);
+		
+		server.restoreP = new ProcessRestore(server, server.serverManager);
 
 		while (!server.input.equals("exit")) {
 
@@ -68,7 +70,7 @@ public class Server {
 
 				}
 				
-				server.restoreP = new ProcessRestore(server, server.serverManager);
+				System.out.println("Restore was successful!");
 
 			}
 			
