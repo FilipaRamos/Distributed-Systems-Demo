@@ -81,6 +81,10 @@ public class ProcessControl implements Runnable {
 
 					sendQueue.remove(i);
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/master
 				} else if (sendQueue.get(i).type.equals("DELETE")) {
 
 					message = "DELETE" + " " + sendQueue.get(i).version + " " + sendQueue.get(i).senderId + " "
@@ -103,6 +107,11 @@ public class ProcessControl implements Runnable {
 
 					sendQueue.remove(i);
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> master
+>>>>>>> origin/master
 				}
 
 			}

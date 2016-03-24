@@ -105,6 +105,16 @@ public class FileEvent {
 				fos.write(chunks.get(i).data);
 				fos.close();
 			}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+			
+			fos.flush();
+			fos.close();
+			fos = null;
+>>>>>>> master
+>>>>>>> origin/master
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -38,6 +38,10 @@ public class CounterRestore implements Runnable {
 			try {
 				server.multicast.restoreSocket.receive(toReceive);
 
+<<<<<<< HEAD
+				if (parseMessage(toReceive.getData(), toReceive.getLength()) == 1) {
+=======
+<<<<<<< HEAD
 				if (parseMessage(toReceive.getData(), toReceive.getLength()) == 1) {
 
 					System.out.println("Restore Counter has received a message of the type CHUNK");
@@ -46,29 +50,74 @@ public class CounterRestore implements Runnable {
 
 			} catch (IOException e) {
 
+=======
+				if(parseMessage(toReceive.getData()) == 1){
+>>>>>>> origin/master
+
+					System.out.println("Restore Counter has received a message of the type CHUNK");
+
+				}
+
+			} catch (IOException e) {
+<<<<<<< HEAD
+
+=======
+				
+>>>>>>> master
+>>>>>>> origin/master
 			}
 
 		}
 
 	}
 
+<<<<<<< HEAD
 	public int parseMessage(byte[] message, int length) throws UnsupportedEncodingException {
+=======
+<<<<<<< HEAD
+	public int parseMessage(byte[] message, int length) throws UnsupportedEncodingException {
+=======
+	public int parseMessage(byte[] message) throws UnsupportedEncodingException {
+>>>>>>> master
+>>>>>>> origin/master
 
 		ByteArrayInputStream data = new ByteArrayInputStream(message);
 		byte[] chunkData = null;
 		byte[] header = null;
 
+<<<<<<< HEAD
 		for (int i = 0; i < length - 1; i++) {
+=======
+<<<<<<< HEAD
+		for (int i = 0; i < length - 1; i++) {
+=======
+		for (int i = 0; i < message.length - 1; i++) {
+>>>>>>> master
+>>>>>>> origin/master
 
 			if (message[i] == 0xd && message[i + 1] == 0xa) {
 
 				if (message[i + 2] == 0xd && message[i + 3] == 0xa) {
 
 					header = new byte[i + 3];
+<<<<<<< HEAD
 					chunkData = new byte[length - (i + 3)];
 
 					data.read(header, 0, i + 3);
 					data.read(chunkData, 0, length - (i + 3));
+=======
+<<<<<<< HEAD
+					chunkData = new byte[length - (i + 3)];
+
+					data.read(header, 0, i + 3);
+					data.read(chunkData, 0, length - (i + 3));
+=======
+					chunkData = new byte[message.length - (i + 1)];
+
+					data.read(header, 0, i + 3);
+					data.read(chunkData, 0, message.length - (i + 1));
+>>>>>>> master
+>>>>>>> origin/master
 					break;
 				}
 			}
@@ -83,6 +132,12 @@ public class CounterRestore implements Runnable {
 
 		if (messageSplit[0].equals("CHUNK")) {
 
+<<<<<<< HEAD
+			if (server.file != null) {
+
+				if (messageSplit[3].equals(server.file.identifier) && (!messageSplit[2].equals(server.id))) {
+=======
+<<<<<<< HEAD
 			if (server.file != null) {
 
 				if (messageSplit[3].equals(server.file.identifier) && (!messageSplit[2].equals(server.id))) {
@@ -94,6 +149,22 @@ public class CounterRestore implements Runnable {
 				}
 			}
 
+=======
+			if (messageSplit[3].equals(server.file.identifier) && !messageSplit[2].equals(server.id)) {
+>>>>>>> origin/master
+
+					Chunk chunk = new Chunk(server.file.identifier, Integer.parseInt(messageSplit[4]), chunkData, 1, 1);
+					server.file.chunks.add(chunk);
+					return 1;
+
+				}
+			}
+<<<<<<< HEAD
+
+=======
+			
+>>>>>>> master
+>>>>>>> origin/master
 			return -1;
 
 		} else {
