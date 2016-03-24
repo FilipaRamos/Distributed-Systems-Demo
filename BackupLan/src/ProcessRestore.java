@@ -7,15 +7,13 @@ import java.util.Random;
 public class ProcessRestore implements Runnable {
 
 	public Server server;
-	public ServerManager serverManager;
 
 	public int randomDelay;
 
 	public ArrayList<Message> sendQueue = new ArrayList<Message>();
 
-	public ProcessRestore(Server server, ServerManager serverManager) {
+	public ProcessRestore(Server server) {
 		this.server = server;
-		this.serverManager = serverManager;
 
 		processRestore();
 	}
@@ -31,8 +29,15 @@ public class ProcessRestore implements Runnable {
 	public void run() {
 
 		while (true) {
-			
+
 			newDelay();
+
+			try {
+				Thread.sleep(randomDelay);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 			for (int i = 0; i < sendQueue.size(); i++) {
 
@@ -51,13 +56,6 @@ public class ProcessRestore implements Runnable {
 
 				}
 
-			}
-
-			try {
-				Thread.sleep(randomDelay);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 
 		}

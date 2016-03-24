@@ -105,10 +105,6 @@ public class FileEvent {
 				fos.write(chunks.get(i).data);
 				fos.close();
 			}
-			
-			fos.flush();
-			fos.close();
-			fos = null;
 
 		} catch (Exception e) {
 			e.printStackTrace();

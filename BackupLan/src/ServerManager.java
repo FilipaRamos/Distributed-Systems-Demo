@@ -44,7 +44,13 @@ public class ServerManager implements Runnable {
 				} else if (messages.get(i).type.equals("GETCHUNK")) {
 
 					if (!messages.get(i).senderId.equals(server.id)) {
-
+						
+						try{
+							Thread.sleep(800);
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+							
 						System.out.println("Found a GETCHUNK request! Checking whether the chunk exists or not...");
 						processResponses(i);
 						messages.remove(i);

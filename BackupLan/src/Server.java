@@ -43,8 +43,6 @@ public class Server {
 		server.startEngine();
 		
 		server.parseInput(server);
-		
-		server.restoreP = new ProcessRestore(server, server.serverManager);
 
 		while (!server.input.equals("exit")) {
 
@@ -75,6 +73,10 @@ public class Server {
 					server.controlP.sendQueue.add(message);
 
 				}
+				
+				try{
+					Thread.sleep(2000);
+				}catch(Exception e){}
 				
 				server.file.mergeFile();
 				
@@ -127,6 +129,7 @@ public class Server {
 
 		// create the processors
 		controlP = new ProcessControl(this);
+		restoreP = new ProcessRestore(this);
 
 	}
 

@@ -33,11 +33,11 @@ public class Chunk {
 
 		File dstFile = new File(outputFile);
 		FileOutputStream fileOutputStream = null;
+		
 		try {
 
 			fileOutputStream = new FileOutputStream(dstFile);
 			fileOutputStream.write(data);
-			fileOutputStream.flush();
 			fileOutputStream.close();
 
 			System.out.println("Output file : " + identifier + "_" + index + " is successfully saved! ");
