@@ -116,10 +116,7 @@ public class Protocol {
 
 		String response = null;
 		int chunkNr = 0;
-
-		long start = System.currentTimeMillis();
-		long end = start + waitingTime * 1000; // 60 seconds * 1000 ms/sec
-
+		
 		System.out.println("Listening for responses to the backup request...");
 		server.multicast.controlSocket.setSoTimeout(waitingTime);
 		response = server.multicast.ControlChannel(server.controlAddress, server.controlPort, null, "listen");

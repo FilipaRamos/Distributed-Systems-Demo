@@ -25,18 +25,17 @@ public class ServerFile {
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 
 	// constructor
-	public ServerFile(int homeServer, String name, int size, String owner, String date) {
+	public ServerFile(int homeServer, String name, int size, String date) {
 
 		this.homeServer = homeServer;
 		this.name = name;
 		this.size = size;
-		this.owner = owner;
 		this.date = date;
 		this.chunksNo = (this.size / (64000)) + 1;
 
 		try {
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			String id = name + date + owner;
+			String id = name + date;
 			md.update(id.getBytes());
 			byte[] digest = md.digest();
 			this.identifier = String.format("%064x", new java.math.BigInteger(1, digest));
@@ -48,7 +47,6 @@ public class ServerFile {
 		System.out.println("Filename: " + this.name);
 		System.out.println("Identifier: " + this.identifier);
 		System.out.println("File size: " + this.size);
-		System.out.println("Owner of the file: " + this.owner);
 		System.out.println("Number of chunks to be used: " + this.chunksNo);
 
 	}
