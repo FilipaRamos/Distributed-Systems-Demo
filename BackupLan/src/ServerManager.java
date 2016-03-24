@@ -1,3 +1,7 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -44,19 +48,40 @@ public class ServerManager implements Runnable {
 				} else if (messages.get(i).type.equals("GETCHUNK")) {
 
 					if (!messages.get(i).senderId.equals(server.id)) {
-						
-						try{
+
+						try {
 							Thread.sleep(800);
-						}catch(Exception e){
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
-							
+
 						System.out.println("Found a GETCHUNK request! Checking whether the chunk exists or not...");
 						processResponses(i);
 						messages.remove(i);
 
 					}
 
+				} else if (messages.get(i).type.equals("DELETE")) {
+
+					if (!messages.get(i).senderId.equals(server.id)) {
+
+						try {
+							Thread.sleep(800);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						System.out.println("Found a DELETE request ! Processing request...");
+						if (server.chunks.size() != 0) {
+							manageDelete(i);
+							System.out.println("Deleted all chunks that belong to the file");
+						} else {
+							System.out.println("Server has no chunks");
+						}
+
+						messages.remove(i);
+
+					}
 				}
 			}
 
@@ -94,7 +119,7 @@ public class ServerManager implements Runnable {
 					Message message = new Message("CHUNK", messages.get(index).version, server.id,
 							messages.get(index).fileId, messages.get(index).chunkNr,
 							messages.get(index).replicationDegree, server.chunks.get(i).data);
-					
+
 					System.out.println("Chunk exists! Fetching it now...");
 
 					server.restoreP.sendQueue.add(message);
@@ -106,9 +131,9 @@ public class ServerManager implements Runnable {
 		}
 
 	}
-	
-	public void processResponses(int i){
-		
+
+	public void processResponses(int i) {
+
 		try {
 			newDelay();
 			Thread.sleep(randomDelay);
@@ -117,12 +142,12 @@ public class ServerManager implements Runnable {
 			e.printStackTrace();
 		}
 
-		if(verifyChunkMessages(messages.get(i).fileId, messages.get(i).chunkNr) == 1){
-			
+		if (verifyChunkMessages(messages.get(i).fileId, messages.get(i).chunkNr) == 1) {
+
 			manageGetchunk(i);
-			
+
 		}
-		
+
 	}
 
 	public int verifyChunkMessages(String fileId, int currentChunk) {
@@ -138,9 +163,9 @@ public class ServerManager implements Runnable {
 						if (messages.get(i).chunkNr == currentChunk) {
 
 							return -1;
-							
+
 						}
-						
+
 					}
 
 				}
@@ -148,8 +173,39 @@ public class ServerManager implements Runnable {
 			}
 
 		}
-		
+
 		return 1;
+
+	}
+
+	public void manageDelete(int index) {
+
+		int i = 0;
+		
+		while(i < server.chunks.size()) {
+
+			if (messages.get(index).fileId.equals(server.chunks.get(i).identifier)) {
+
+				System.out.println("Found one chunk that belongs to the deleted file! Deleting it now...");
+
+				String newPath = System.getProperty("user.dir") + "\\" + server.chunks.get(i).identifier + "_"
+						+ Integer.toString(server.chunks.get(i).index);
+
+				Path path = Paths.get(newPath);
+
+				try {
+					Files.deleteIfExists(path);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				server.chunks.remove(i);
+
+			}else{
+				i++;
+			}
+			
+		}
 
 	}
 

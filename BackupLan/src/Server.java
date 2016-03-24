@@ -25,13 +25,13 @@ public class Server {
 
 	// files that were asked to be stored by this server
 	public ArrayList<FileEvent> files = new ArrayList<FileEvent>();
-	// chunks that were stored by this server 
+	// chunks that were stored by this server
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 	// requests that the user has made
 	public ArrayList<Message> requests = new ArrayList<Message>();
 	// file to restore
 	public FileEvent file = null;
-	
+
 	public Scanner in = new Scanner(System.in);;
 
 	public Server() {
@@ -41,7 +41,7 @@ public class Server {
 
 		Server server = new Server();
 		server.startEngine();
-		
+
 		server.parseInput(server);
 
 		while (!server.input.equals("exit")) {
@@ -73,21 +73,40 @@ public class Server {
 					server.controlP.sendQueue.add(message);
 
 				}
-				
-				try{
+
+				try {
 					Thread.sleep(2000);
-				}catch(Exception e){}
-				
+				} catch (Exception e) {
+				}
+
 				server.file.mergeFile();
-				
+
 				System.out.println("Restore was successful!");
 
+			} else if (server.operation.equals("DELETE")) {
+
+				int deleteIndex = server.findFile(server.path);
+				server.file = server.files.get(deleteIndex);
+
+				Message deleteMessage = new Message("DELETE", "1.0", server.id, server.file.identifier, 0, 0, null);
+				server.controlP.sendQueue.add(deleteMessage);
+				
+				try {
+					Thread.sleep(2000);
+				} catch (Exception e) {
+				}
+				
+				server.file = null;
+				server.files.remove(deleteIndex);
+				
+				System.out.println("Finished deleting file!");
+
 			}
-			
+
 			server.parseInput(server);
-			
+
 		}
-		
+
 		server.in.close();
 
 	}
@@ -113,6 +132,11 @@ public class Server {
 			server.id = inputSplitted[1];
 			server.path = inputSplitted[2];
 
+		} else if (inputSplitted[0].equals("DELETE")) {
+			
+			server.operation = inputSplitted[0];
+			server.id = inputSplitted[1];
+			server.path = inputSplitted[2];
 		}
 
 	}
