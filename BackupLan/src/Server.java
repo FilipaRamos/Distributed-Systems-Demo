@@ -21,8 +21,7 @@ public class Server {
 
 	public ServerManager serverManager;
 
-	public Multicast multicast = new Multicast("224.0.0.3", 8884, "224.0.0.26",
-			8885, "224.0.0.116", 8886);
+	public Multicast multicast = new Multicast("224.0.0.3", 8884, "224.0.0.26", 8885, "224.0.0.116", 8886);
 
 	// files that were asked to be stored by this server
 	public ArrayList<FileEvent> files = new ArrayList<FileEvent>();
@@ -45,28 +44,21 @@ public class Server {
 
 		server.parseInput(server);
 
-		server.restoreP = new ProcessRestore(server, server.serverManager);
-		
-		System.out.println(server.operation);
-
 		while (!server.input.equals("exit")) {
 
 			if (server.operation.equals("PUTCHUNK")) {
 
 				// create the specified file
 				File file = new File(server.path);
-				SimpleDateFormat sdf = new SimpleDateFormat(
-						"MM/dd/yyyy HH:mm:ss");
-				FileEvent fileEvent = new FileEvent(server.id, file.getName(),
-						(int) file.length(), sdf.format(file.lastModified()),
-						server.replicationDegree);
+				SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+				FileEvent fileEvent = new FileEvent(server.id, file.getName(), (int) file.length(),
+						sdf.format(file.lastModified()), server.replicationDegree);
 
 				server.files.add(fileEvent);
 
 				fileEvent.splitFile(file, server);
 
-				server.backupP = new ProcessBackup(server,
-						server.serverManager, fileEvent);
+				server.backupP = new ProcessBackup(server, server.serverManager, fileEvent);
 
 			} else if (server.operation.equals("GETCHUNK")) {
 
@@ -77,10 +69,14 @@ public class Server {
 				// add the messages for each chunk
 				for (int i = 0; i < server.file.chunksNo; i++) {
 
-					Message message = new Message("GETCHUNK", "1.0", server.id,
-							server.file.identifier, i, 0, null);
+					Message message = new Message("GETCHUNK", "1.0", server.id, server.file.identifier, i, 0, null);
 					server.controlP.sendQueue.add(message);
 
+				}
+
+				try {
+					Thread.sleep(2000);
+				} catch (Exception e) {
 				}
 
 				server.file.mergeFile();
@@ -89,16 +85,22 @@ public class Server {
 
 			} else if (server.operation.equals("DELETE")) {
 
-				int index = server.findFile(server.path);
-				System.out.println(index);
-				server.file = server.files.get(index);
-				server.files.get(index).chunks.clear();
+				int deleteIndex = server.findFile(server.path);
+				server.file = server.files.get(deleteIndex);
 
-				for (int i = 0; i < server.file.chunksNo; i++) {
-					Message message = new Message("DELETE", "1.0", server.id,
-							server.file.identifier, i, 0, null);
-					server.controlP.sendQueue.add(message);
+				Message deleteMessage = new Message("DELETE", "1.0", server.id, server.file.identifier, 0, 0, null);
+				server.controlP.sendQueue.add(deleteMessage);
+				
+				try {
+					Thread.sleep(2000);
+				} catch (Exception e) {
 				}
+				
+				server.file = null;
+				server.files.remove(deleteIndex);
+				
+				System.out.println("Finished deleting file!");
+
 			}
 
 			server.parseInput(server);
@@ -151,6 +153,7 @@ public class Server {
 
 		// create the processors
 		controlP = new ProcessControl(this);
+		restoreP = new ProcessRestore(this);
 
 	}
 
