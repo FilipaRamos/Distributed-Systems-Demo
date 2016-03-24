@@ -7,31 +7,13 @@ import java.util.Random;
 public class ProcessRestore implements Runnable {
 
 	public Server server;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-	public ServerManager serverManager;
->>>>>>> master
->>>>>>> origin/master
 
 	public int randomDelay;
 
 	public ArrayList<Message> sendQueue = new ArrayList<Message>();
 
-<<<<<<< HEAD
 	public ProcessRestore(Server server) {
 		this.server = server;
-=======
-<<<<<<< HEAD
-	public ProcessRestore(Server server) {
-		this.server = server;
-=======
-	public ProcessRestore(Server server, ServerManager serverManager) {
-		this.server = server;
-		this.serverManager = serverManager;
->>>>>>> master
->>>>>>> origin/master
 
 		processRestore();
 	}
@@ -47,7 +29,6 @@ public class ProcessRestore implements Runnable {
 	public void run() {
 
 		while (true) {
-<<<<<<< HEAD
 
 			newDelay();
 
@@ -58,24 +39,6 @@ public class ProcessRestore implements Runnable {
 				e.printStackTrace();
 			}
 
-=======
-<<<<<<< HEAD
-
-			newDelay();
-
-			try {
-				Thread.sleep(randomDelay);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-=======
-			
-			newDelay();
-
->>>>>>> master
->>>>>>> origin/master
 			for (int i = 0; i < sendQueue.size(); i++) {
 
 				if (sendQueue.get(i).type.equals("CHUNK")) {
@@ -95,19 +58,6 @@ public class ProcessRestore implements Runnable {
 
 			}
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-			try {
-				Thread.sleep(randomDelay);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
->>>>>>> master
->>>>>>> origin/master
 		}
 
 	}
