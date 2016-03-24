@@ -39,10 +39,15 @@ public class ServerManager implements Runnable {
 
 					if (!messages.get(i).senderId.equals(server.id)) {
 
+<<<<<<< HEAD
+						System.out.println("Found a PUTCHUNK request! Storing chunk now...");
+						System.out.println(messages.get(i).fileId + " " + messages.get(i).chunkNr);
+=======
 						System.out
 								.println("Found a PUTCHUNK request! Storing chunk now...");
 						System.out.println(messages.get(i).fileId + " "
 								+ messages.get(i).chunkNr);
+>>>>>>> master
 						managePutchunk(i);
 						messages.remove(i);
 
@@ -51,12 +56,45 @@ public class ServerManager implements Runnable {
 
 					if (!messages.get(i).senderId.equals(server.id)) {
 
+<<<<<<< HEAD
+						try {
+							Thread.sleep(800);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						System.out.println("Found a GETCHUNK request! Checking whether the chunk exists or not...");
+=======
 						System.out
 								.println("Found a GETCHUNK request! Checking whether the chunk exists or not...");
+>>>>>>> master
 						processResponses(i);
 						messages.remove(i);
 
 					}
+<<<<<<< HEAD
+
+				} else if (messages.get(i).type.equals("DELETE")) {
+
+					if (!messages.get(i).senderId.equals(server.id)) {
+
+						try {
+							Thread.sleep(800);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						System.out.println("Found a DELETE request ! Processing request...");
+						if (server.chunks.size() != 0) {
+							manageDelete(i);
+							System.out.println("Deleted all chunks that belong to the file");
+						} else {
+							System.out.println("Server has no chunks");
+						}
+
+						messages.remove(i);
+
+=======
 				} else if (messages.get(i).type.equals("DELETE")) {
 					if (!messages.get(i).senderId.equals(server.id)) {
 						System.out
@@ -72,6 +110,7 @@ public class ServerManager implements Runnable {
 								e.printStackTrace();
 							}
 						}
+>>>>>>> master
 					}
 				}
 			}
@@ -87,15 +126,24 @@ public class ServerManager implements Runnable {
 
 	public void managePutchunk(int i) {
 
+<<<<<<< HEAD
+		Chunk chunk = new Chunk(messages.get(i).fileId, messages.get(i).chunkNr, messages.get(i).data,
+=======
 		Chunk chunk = new Chunk(messages.get(i).fileId,
 				messages.get(i).chunkNr, messages.get(i).data,
+>>>>>>> master
 				messages.get(i).replicationDegree, 1);
 		server.chunks.add(chunk);
 		chunk.writeChunk();
 
+<<<<<<< HEAD
+		Message message = new Message("STORED", messages.get(i).version, server.id, messages.get(i).fileId,
+				messages.get(i).chunkNr, 1, null);
+=======
 		Message message = new Message("STORED", messages.get(i).version,
 				server.id, messages.get(i).fileId, messages.get(i).chunkNr, 1,
 				null);
+>>>>>>> master
 
 		server.controlP.sendQueue.add(message);
 
@@ -105,6 +153,15 @@ public class ServerManager implements Runnable {
 
 		for (int i = 0; i < server.chunks.size(); i++) {
 
+<<<<<<< HEAD
+			if (messages.get(index).fileId.equals(server.chunks.get(i).identifier)) {
+
+				if (messages.get(index).chunkNr == server.chunks.get(i).index) {
+
+					Message message = new Message("CHUNK", messages.get(index).version, server.id,
+							messages.get(index).fileId, messages.get(index).chunkNr,
+							messages.get(index).replicationDegree, server.chunks.get(i).data);
+=======
 			if (messages.get(index).fileId
 					.equals(server.chunks.get(i).identifier)) {
 
@@ -116,6 +173,7 @@ public class ServerManager implements Runnable {
 							messages.get(index).chunkNr,
 							messages.get(index).replicationDegree,
 							server.chunks.get(i).data);
+>>>>>>> master
 
 					System.out.println("Chunk exists! Fetching it now...");
 
@@ -175,6 +233,40 @@ public class ServerManager implements Runnable {
 
 	}
 
+<<<<<<< HEAD
+	public void manageDelete(int index) {
+
+		int i = 0;
+		
+		while(i < server.chunks.size()) {
+
+			if (messages.get(index).fileId.equals(server.chunks.get(i).identifier)) {
+
+				System.out.println("Found one chunk that belongs to the deleted file! Deleting it now...");
+
+				String newPath = System.getProperty("user.dir") + "\\" + server.chunks.get(i).identifier + "_"
+						+ Integer.toString(server.chunks.get(i).index);
+
+				Path path = Paths.get(newPath);
+
+				try {
+					Files.deleteIfExists(path);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				server.chunks.remove(i);
+
+			}else{
+				i++;
+			}
+			
+		}
+
+	}
+
+=======
+>>>>>>> master
 	public void newDelay() {
 
 		Random rand = new Random();

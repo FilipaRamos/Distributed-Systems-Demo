@@ -40,7 +40,11 @@ public class CounterBackup implements Runnable {
 				server.multicast.backupSocket.receive(toReceive);
 
 				Message message = parseMessage(toReceive.getData(), toReceive.getLength());
+<<<<<<< HEAD
+				
+=======
 				System.out.println("received: " + new String(message.data));
+>>>>>>> master
 				if (message != null) {
 					System.out.println("Backup Counter has received a message of the type " + message.type + " "
 							+ message.senderId);
@@ -69,17 +73,28 @@ public class CounterBackup implements Runnable {
 				if (message[i + 2] == 0xd && message[i + 3] == 0xa) {
 
 					header = new byte[i + 3];
+<<<<<<< HEAD
+					chunkData = new byte[length - (i + 3)];
+
+					data.read(header, 0, i + 3);
+					data.read(chunkData, 0, length - (i + 3));
+=======
 					chunkData = new byte[length - (i + 1)];
 
 					data.read(header, 0, i + 3);
 					data.read(chunkData, 0, length - (i + 1));
+>>>>>>> master
 					break;
 				}
 			}
 
 		}
+<<<<<<< HEAD
+		
+=======
 		// vê lá e depois diz alguma coisa, mas o length tinhas mal, porque o
 		// tamanho do packet não é igual ao tamanho do array
+>>>>>>> master
 		// split the information on the received request
 		String headerString = new String(header, "UTF-8");
 		String[] messageSplit;

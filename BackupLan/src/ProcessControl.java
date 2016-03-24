@@ -81,6 +81,31 @@ public class ProcessControl implements Runnable {
 
 					sendQueue.remove(i);
 
+<<<<<<< HEAD
+				} else if (sendQueue.get(i).type.equals("DELETE")) {
+
+					message = "DELETE" + " " + sendQueue.get(i).version + " " + sendQueue.get(i).senderId + " "
+							+ sendQueue.get(i).fileId + " " + "\r\n" + "\r\n";
+
+					try {
+
+						buffer = message.getBytes();
+
+						toSend = new DatagramPacket(buffer, buffer.length, server.multicast.controlIP,
+								server.multicast.controlPort);
+
+						server.multicast.controlSocket.send(toSend);
+
+						System.out.println("Sent delete message");
+
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+
+					sendQueue.remove(i);
+
+=======
+>>>>>>> master
 				}
 
 			}
