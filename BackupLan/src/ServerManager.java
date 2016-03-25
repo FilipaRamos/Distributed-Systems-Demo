@@ -40,7 +40,6 @@ public class ServerManager implements Runnable {
 					if (!messages.get(i).senderId.equals(server.id)) {
 
 						System.out.println("Found a PUTCHUNK request! Storing chunk now...");
-						System.out.println(messages.get(i).fileId + " " + messages.get(i).chunkNr);
 						managePutchunk(i);
 						messages.remove(i);
 
@@ -82,6 +81,26 @@ public class ServerManager implements Runnable {
 						messages.remove(i);
 
 					}
+				} else if (messages.get(i).type.equals("REMOVED")) {
+
+					if (!messages.get(i).senderId.equals(server.id)) {
+
+						try {
+							Thread.sleep(800);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						System.out.println("Found a REMOVED message! Decrementing chunk count...");
+						if(manageRemoved(i) == 1)
+							messages.remove(i);
+						else
+							System.out.println("Failed to remove chunks...");
+						
+						verifyRepDegree(i);
+
+					}
+
 				}
 			}
 
@@ -181,8 +200,8 @@ public class ServerManager implements Runnable {
 	public void manageDelete(int index) {
 
 		int i = 0;
-		
-		while(i < server.chunks.size()) {
+
+		while (i < server.chunks.size()) {
 
 			if (messages.get(index).fileId.equals(server.chunks.get(i).identifier)) {
 
@@ -198,15 +217,65 @@ public class ServerManager implements Runnable {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
 				server.chunks.remove(i);
 
-			}else{
+			} else {
 				i++;
 			}
-			
+
 		}
 
+	}
+
+	public int manageRemoved(int index) {
+
+		for (int i = 0; i < server.chunks.size(); i++) {
+
+			if (server.chunks.get(i).identifier.equals(messages.get(index).fileId)) {
+
+				if (server.chunks.get(i).index == messages.get(index).chunkNr) {
+
+					server.chunks.get(i).decrementActualDeg();
+					System.out.println("Chunk " + server.chunks.get(i).identifier + "_" + server.chunks.get(i).index
+							+ " " + server.chunks.get(i).actualRepDeg);
+					return 1;
+
+				}
+
+			}
+
+		}
+
+		for (int j = 0; j < server.files.size(); j++) {
+
+			if (server.files.get(j).identifier.equals(messages.get(index).fileId)) {
+
+				for (int k = 0; k < server.files.get(j).chunks.size(); k++) {
+
+					if (server.files.get(j).chunks.get(k).index == messages.get(index).chunkNr) {
+
+						server.files.get(j).chunks.get(k).decrementActualDeg();
+						System.out.println("Chunk " + server.files.get(j).chunks.get(k).identifier + "_"
+								+ server.files.get(j).chunks.get(k).index + " - "
+								+ server.files.get(j).chunks.get(k).actualRepDeg);
+						return 1;
+
+					}
+				}
+
+			}
+
+		}
+
+		return 0;
+
+	}
+	
+	public void verifyRepDegree(int index){
+		
+		// needs to be developed!
+		
 	}
 
 	public void newDelay() {

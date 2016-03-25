@@ -58,17 +58,17 @@ public class CounterControl implements Runnable {
 
 		Message m;
 		String[] messageSplit;
-		messageSplit = message.split(" +");
+		messageSplit = message.split("\\s+");
 
 		if (messageSplit[0].equals("STORED") || messageSplit[0].equals("GETCHUNK")
 				|| messageSplit[0].equals("REMOVED")) {
 
 			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3],
-					Integer.parseInt(messageSplit[4]), -1, null);
+					Integer.parseInt(messageSplit[4]), 0, null);
 
 		} else if (messageSplit[0].equals("DELETE")) {
 
-			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3], -1, -1, null);
+			m = new Message(messageSplit[0], messageSplit[1], messageSplit[2], messageSplit[3], 0, 0, null);
 
 		} else {
 			System.out.println("Received message that is not supported by the system.... Bye....");

@@ -103,8 +103,9 @@ public class FileEvent {
 			
 			for(int i = 0; i < chunks.size(); i++){
 				fos.write(chunks.get(i).data);
-				fos.close();
 			}
+			
+			fos.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -64,7 +64,7 @@ public class ProcessBackup implements Runnable {
 		String header = request.type + " " + request.version + " " + server.id + " " + request.fileId + " "
 				+ request.chunkNr + " " + request.replicationDegree + " " + "\r\n" + "\r\n";
 
-		byte[] head = new byte[35];
+		byte[] head = new byte[50];
 		head = header.getBytes();
 
 		System.out.println("Chunk header formed");

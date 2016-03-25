@@ -1,4 +1,8 @@
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -10,6 +14,7 @@ public class Server {
 	public String id;
 	public String path;
 	public int replicationDegree;
+	public int reclaimSpace;
 
 	public CounterControl controlC;
 	public CounterBackup backupC;
@@ -44,6 +49,11 @@ public class Server {
 
 		server.parseInput(server);
 
+		try {
+			Thread.sleep(400);
+		} catch (Exception e) {
+		}
+
 		while (!server.input.equals("exit")) {
 
 			if (server.operation.equals("PUTCHUNK")) {
@@ -75,7 +85,7 @@ public class Server {
 				}
 
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(5000);
 				} catch (Exception e) {
 				}
 
@@ -90,19 +100,50 @@ public class Server {
 
 				Message deleteMessage = new Message("DELETE", "1.0", server.id, server.file.identifier, 0, 0, null);
 				server.controlP.sendQueue.add(deleteMessage);
-				
+
 				try {
 					Thread.sleep(2000);
 				} catch (Exception e) {
 				}
-				
+
 				server.file = null;
 				server.files.remove(deleteIndex);
-				
+
 				System.out.println("Finished deleting file!");
 
-			}
+			} else if (server.operation.equals("RECLAIM")) {
 
+				System.out.println("Reclaiming space now...");
+				ArrayList<Chunk> chunksToDelete = server.reclaimSpace();
+
+				if (chunksToDelete != null) {
+
+					for (int i = 0; i < chunksToDelete.size(); i++) {
+
+						String newPath = System.getProperty("user.dir") + "\\" + server.chunks.get(i).identifier + "_"
+								+ Integer.toString(server.chunks.get(i).index);
+
+						Path path = Paths.get(newPath);
+
+						try {
+							Files.deleteIfExists(path);
+							System.out.println("Deleted chunk " + server.chunks.get(i).identifier + "_"
+									+ Integer.toString(server.chunks.get(i).index));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+						Message chunkToDel = new Message("REMOVED", "1.0", server.id, chunksToDelete.get(i).identifier,
+								chunksToDelete.get(i).index, 0, null);
+						server.controlP.sendQueue.add(chunkToDel);
+
+					}
+
+					server.removeChunks(chunksToDelete);
+				}
+
+			}
+			
 			server.parseInput(server);
 
 		}
@@ -113,7 +154,6 @@ public class Server {
 
 	public void parseInput(Server server) {
 
-		System.out.println("Operation to perform? ");
 		server.input = in.nextLine();
 
 		String[] inputSplitted;
@@ -133,10 +173,17 @@ public class Server {
 			server.path = inputSplitted[2];
 
 		} else if (inputSplitted[0].equals("DELETE")) {
-			
+
 			server.operation = inputSplitted[0];
 			server.id = inputSplitted[1];
 			server.path = inputSplitted[2];
+
+		} else if (inputSplitted[0].equals("RECLAIM")) {
+
+			server.operation = inputSplitted[0];
+			server.id = inputSplitted[1];
+			server.reclaimSpace = Integer.parseInt(inputSplitted[2]);
+
 		}
 
 	}
@@ -165,6 +212,49 @@ public class Server {
 		}
 
 		return -1;
+
+	}
+
+	public ArrayList<Chunk> reclaimSpace() {
+
+		ArrayList<Chunk> delChunks = new ArrayList<Chunk>();
+		int space = 0;
+
+		for (int i = 0; i < chunks.size(); i++) {
+
+			space += chunks.get(i).data.length;
+			delChunks.add(chunks.get(i));
+
+			if (space >= reclaimSpace) {
+				System.out.println("Found the chunks to eliminate...");
+				break;
+			}
+
+		}
+
+		if (space < reclaimSpace) {
+
+			System.out.println("Server doesn't have enough chunks to reclaim that much space... :(");
+			return null;
+
+		}
+
+		return delChunks;
+
+	}
+
+	public void removeChunks(ArrayList<Chunk> toDel) {
+
+		for (int i = 0; i < toDel.size(); i++) {
+
+			for (int j = 0; j < chunks.size(); j++) {
+
+				if (toDel.get(i) == chunks.get(j))
+					chunks.remove(j);
+
+			}
+
+		}
 
 	}
 

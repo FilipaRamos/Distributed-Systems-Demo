@@ -26,6 +26,12 @@ public class Chunk {
 		actualRepDeg++;
 
 	}
+	
+	public void decrementActualDeg(){
+		
+		actualRepDeg--;
+		
+	}
 
 	// to write the chunk in the disk
 	public void writeChunk() {
@@ -38,6 +44,7 @@ public class Chunk {
 
 			fileOutputStream = new FileOutputStream(dstFile);
 			fileOutputStream.write(data);
+			fileOutputStream.flush();
 			fileOutputStream.close();
 
 			System.out.println("Output file : " + identifier + "_" + index + " is successfully saved! ");

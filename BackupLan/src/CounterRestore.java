@@ -79,7 +79,7 @@ public class CounterRestore implements Runnable {
 		String headerString = new String(header, "UTF-8");
 		String[] messageSplit;
 
-		messageSplit = headerString.split(" +");
+		messageSplit = headerString.split("\\s+");
 
 		if (messageSplit[0].equals("CHUNK")) {
 
