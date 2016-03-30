@@ -36,8 +36,10 @@ public class Server {
 	public ArrayList<Message> requests = new ArrayList<Message>();
 	// file to restore
 	public FileEvent file = null;
+	// chunks that are below the desired replication degree
+	public ArrayList<Chunk> belowChunks = new ArrayList<Chunk>();
 
-	public Scanner in = new Scanner(System.in);;
+	public Scanner in = new Scanner(System.in);
 
 	public Server() {
 	}
@@ -68,7 +70,7 @@ public class Server {
 
 				fileEvent.splitFile(file, server);
 
-				server.backupP = new ProcessBackup(server, server.serverManager, fileEvent);
+				server.backupP = new ProcessBackup(server, server.serverManager);
 
 			} else if (server.operation.equals("GETCHUNK")) {
 
@@ -139,11 +141,16 @@ public class Server {
 
 					}
 
+					try {
+						Thread.sleep(2000);
+					} catch (Exception e) {
+					}
+
 					server.removeChunks(chunksToDelete);
 				}
 
 			}
-			
+
 			server.parseInput(server);
 
 		}
@@ -253,6 +260,28 @@ public class Server {
 					chunks.remove(j);
 
 			}
+
+		}
+
+	}
+
+	public void processBelowChunks() {
+
+		int dif = 0;
+		
+		for (int i = 0; i < belowChunks.size(); i++) {
+
+			System.out.println("Reinitiating the backup protocol for a chunk below desired replication degree from server " + id);
+
+			FileEvent file = new FileEvent(id, 1);
+			file.chunks.add(belowChunks.get(i));
+			
+			dif = belowChunks.get(i).replicationDegree - belowChunks.get(i).actualRepDeg;
+
+			Message message = new Message("PUTCHUNK", "1.0", id, belowChunks.get(i).identifier,
+					belowChunks.get(i).index, dif, belowChunks.get(i).data);
+
+			requests.add(message);
 
 		}
 

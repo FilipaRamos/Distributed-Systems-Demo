@@ -86,20 +86,45 @@ public class ServerManager implements Runnable {
 					if (!messages.get(i).senderId.equals(server.id)) {
 
 						try {
-							Thread.sleep(800);
+							Thread.sleep(400);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 
 						System.out.println("Found a REMOVED message! Decrementing chunk count...");
-						if(manageRemoved(i) == 1)
-							messages.remove(i);
+						if (manageRemoved(i) == 1)
+							System.out.println("Removed chunks...");
 						else
 							System.out.println("Failed to remove chunks...");
+
+						try {
+							Thread.sleep(randomDelay);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						if (findPutchunk(i) != 1) {
+
+							// replication degree below
+							if (verifyRepDegree(i) == 1) {
+
+								Message m = new Message("PUTCHUNK", "1.0", server.id, messages.get(i).fileId,
+										messages.get(i).chunkNr, messages.get(i).replicationDegree,
+										messages.get(i).data);
+								server.requests.add(m);
+								System.out.println("Added request");
+
+							}
+							
+						} else {
+							System.out.println("Backup subprotocol already initiated by another peer...");
+						}
 						
-						verifyRepDegree(i);
+						messages.remove(i);
 
 					}
+
+					newDelay();
 
 				}
 			}
@@ -238,7 +263,7 @@ public class ServerManager implements Runnable {
 
 					server.chunks.get(i).decrementActualDeg();
 					System.out.println("Chunk " + server.chunks.get(i).identifier + "_" + server.chunks.get(i).index
-							+ " " + server.chunks.get(i).actualRepDeg);
+							+ " -*- " + server.chunks.get(i).actualRepDeg);
 					return 1;
 
 				}
@@ -271,11 +296,75 @@ public class ServerManager implements Runnable {
 		return 0;
 
 	}
-	
-	public void verifyRepDegree(int index){
-		
-		// needs to be developed!
-		
+
+	public int verifyRepDegree(int index) {
+
+		for (int i = 0; i < server.chunks.size(); i++) {
+
+			if (server.chunks.get(i).identifier.equals(messages.get(index).fileId)
+					&& server.chunks.get(i).index == messages.get(index).chunkNr) {
+
+				if (server.chunks.get(i).actualRepDeg < server.chunks.get(i).replicationDegree) {
+
+					System.out.println("Found chunk that droped below the desired replication degree");
+					System.out.println(server.chunks.get(i).identifier + " *-* " + server.chunks.get(i).index);
+					return 1;
+
+				}
+			}
+
+		}
+
+		for (int k = 0; k < server.files.size(); k++) {
+
+			if (server.files.get(k).identifier.equals(messages.get(index).fileId)) {
+
+				for (int j = 0; j < server.files.get(k).chunks.size(); j++) {
+
+					if (server.files.get(k).chunks.get(j).index == messages.get(index).chunkNr) {
+
+						if (server.files.get(k).chunks.get(j).actualRepDeg < server.files.get(k).chunks
+								.get(j).replicationDegree) {
+
+							System.out.println("Found chunk that droped below the desired replication degree");
+							System.out.println(
+									server.files.get(k).identifier + " - " + server.files.get(k).chunks.get(j).index);
+							return 1;
+
+						}
+					}
+
+				}
+			}
+
+		}
+
+		return 0;
+
+	}
+
+	public int findPutchunk(int index) {
+
+		for (int i = index + 1; i < messages.size(); i++) {
+
+			if (messages.get(i).type.equals("PUTCHUNK")) {
+
+				if (messages.get(i).fileId.equals(messages.get(index).fileId)) {
+
+					if (messages.get(i).chunkNr == messages.get(index).chunkNr) {
+
+						return 1;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return 0;
+
 	}
 
 	public void newDelay() {

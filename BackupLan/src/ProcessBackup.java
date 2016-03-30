@@ -7,17 +7,15 @@ public class ProcessBackup implements Runnable {
 
 	public Server server;
 	public ServerManager serverManager;
-	public FileEvent fileEvent;
 	public ArrayList<String> receivedStored = new ArrayList<String>();
 
 	public int waitingTime;
 	public int nrTries;
 
-	public ProcessBackup(Server server, ServerManager serverManager, FileEvent fileEvent) {
+	public ProcessBackup(Server server, ServerManager serverManager) {
 		this.server = server;
 		this.serverManager = serverManager;
-		this.fileEvent = fileEvent;
-		
+
 		waitingTime = 1000;
 		nrTries = 0;
 
@@ -41,21 +39,26 @@ public class ProcessBackup implements Runnable {
 
 	public void processRequest() {
 
-		int nrChunks = 0;
-		while (nrChunks < fileEvent.chunksNo) {
-			if(sendChunk(server, server.requests.get(nrChunks)) == 1){
-				System.out.println("Processed chunk nr " + nrChunks);
-				nrChunks++;
-				receivedStored.clear();
-				waitingTime = 1000;
-				nrTries = 0;
-			}
-			if(nrTries >= 5){
-				nrChunks++;
-			}
-		}
+		while (true) {
 
-		server.requests.clear();
+			int nrChunks = 0;
+			while (nrChunks < server.requests.size()) {
+				if (sendChunk(server, server.requests.get(nrChunks)) == 1) {
+					System.out.println("Processed chunk nr " + nrChunks);
+					nrChunks++;
+					receivedStored.clear();
+					waitingTime = 1000;
+					nrTries = 0;
+				}
+				if (nrTries >= 5) {
+					System.out.println("It wasn't possible to store the chunk with the desired replication degree :(");
+					nrChunks++;
+				}
+			}
+
+			server.requests.clear();
+			
+		}
 
 	}
 
@@ -129,16 +132,64 @@ public class ProcessBackup implements Runnable {
 			System.out.println("Desired replication degree was not achieved! Trying again...");
 			nrTries++;
 			waitingTime = waitingTime * 2 * nrTries;
-			fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			findFile(message).chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 			return -1;
 
 		} else {
 
 			System.out.println("Desired replication degree was achieved!");
-			fileEvent.chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
+			findFile(message).chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 			return 1;
 
 		}
+
+	}
+
+	public void reclaimBelow() {
+
+		try {
+			Thread.sleep(waitingTime);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		int dif = 0;
+
+		for (int i = 0; i < server.belowChunks.size(); i++) {
+
+			dif = server.belowChunks.get(i).replicationDegree - server.belowChunks.get(i).actualRepDeg;
+
+			Message message = new Message("PUTCHUNK", "1.0", server.id, server.belowChunks.get(i).identifier,
+					server.belowChunks.get(i).index, dif, server.belowChunks.get(i).data);
+
+			while (nrTries < 5) {
+				if (sendChunk(server, message) == 1) {
+					System.out.println("Starting backup subprotocol for chunk " + server.belowChunks.get(i).identifier
+							+ "_" + server.belowChunks.get(i).index);
+					receivedStored.clear();
+					waitingTime = 1000;
+					nrTries = 0;
+					break;
+				}
+
+			}
+
+		}
+	}
+
+	public FileEvent findFile(Message message) {
+
+		for (int i = 0; i < server.files.size(); i++) {
+
+			if (server.files.get(i).identifier.equals(message.fileId)) {
+
+				return server.files.get(i);
+
+			}
+
+		}
+
+		return null;
 
 	}
 

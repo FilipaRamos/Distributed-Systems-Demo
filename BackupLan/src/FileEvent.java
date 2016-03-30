@@ -47,6 +47,13 @@ public class FileEvent {
 		System.out.println("Number of chunks to be used: " + this.chunksNo);
 
 	}
+	
+	public FileEvent(String homeServer, int chunksNo){
+		
+		this.homeServer = homeServer;
+		this.chunksNo = chunksNo;
+		
+	}
 
 	// splits the file in chunks
 	public void splitFile(File inputFile, Server server) {
