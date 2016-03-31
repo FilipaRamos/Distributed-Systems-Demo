@@ -19,7 +19,6 @@ public class TestApp  {
 	public int rep;
 	
 	public TestApp(){
-		
 	}
 	
 	public static void main (String args[]) throws NumberFormatException, UnknownHostException, IOException{
@@ -29,43 +28,56 @@ public class TestApp  {
 		
 		TestApp app = new TestApp();
 		
-		app.peer = args[0];
+		Socket appSocket;
+
 		app.protocol = args[1];
 		app.opnd_1 = args[2];
 		app.rep = Integer.parseInt(args[3]);
 		
-		String[] splitted;
-		splitted = (app.peer).split(":");
+		if(args[0].indexOf(":") != -1){
+		
+			String[] splitted;
+			splitted = (app.peer).split(":");
+			
+			appSocket = new Socket(splitted[0], Integer.parseInt(splitted[1]));
+			app.peer = splitted[1];
+			
+		}else{
+			
+			appSocket = new Socket("localhost", Integer.parseInt(args[0]));
+			app.peer = args[0];
+			
+		}
+		
+		System.out.println("Estabilished communication with initiator peer");
 		
 		String toSend = null;
 		String response = null;
 		
 		if (app.protocol.equals("BACKUP")){
-			toSend = "BACKUP " + args[2] + " " + args[3];
+			toSend = "BACKUP " + args[0] + " " + args[2] + " " + args[3];
 		}
 		else if (app.protocol.equals("RESTORE")){
-			toSend = "RESTORE " + args[2];
+			toSend = "RESTORE " + args[0] + " " + args[2];
 		}
 		else if (app.protocol.equals("DELETE")){
-			toSend = "DELETE " + args[2];
+			toSend = "DELETE " + args[0] + " " + args[2];
 		}
 		else if (app.protocol.equals("RECLAIM")){
-			toSend = "RECLAIM " + args[2]; 
+			toSend = "RECLAIM " + args[0] + " " + args[2]; 
 		}
 		else {
 			System.out.println("ERROR! Command not supported!");
 			System.exit(0);
 		}
 		
-		Socket appSocket = new Socket(splitted[0], Integer.parseInt(splitted[1]));
-		
 		DataOutputStream outToServer = new DataOutputStream(appSocket.getOutputStream());
 		outToServer.writeBytes(toSend + '\n');
-		System.out.println("Waiting for status report...");
+		System.out.println("Sent command");
 		
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(appSocket.getInputStream()));
 		response = inFromServer.readLine();
-		System.out.println("Status from server: " + response);
+		System.out.println("Response from server " + response);
 		
 		appSocket.close();
 		
