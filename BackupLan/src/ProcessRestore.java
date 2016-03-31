@@ -20,7 +20,7 @@ public class ProcessRestore implements Runnable {
 
 	public void processRestore() {
 
-		System.out.println("Restore processor up and running!");
+		System.out.println("Setting up the Restore Processor");
 		new Thread(this).start();
 
 	}

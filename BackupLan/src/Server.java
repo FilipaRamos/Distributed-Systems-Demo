@@ -36,8 +36,8 @@ public class Server {
 	public ArrayList<Message> requests = new ArrayList<Message>();
 	// file to restore
 	public FileEvent file = null;
-	// chunks that are below the desired replication degree
-	public ArrayList<Chunk> belowChunks = new ArrayList<Chunk>();
+	// chunks that cannot be stored
+	public ArrayList<Chunk> forbiddenChunks = new ArrayList<Chunk>();
 
 	public Scanner in = new Scanner(System.in);
 
@@ -138,6 +138,9 @@ public class Server {
 						Message chunkToDel = new Message("REMOVED", "1.0", server.id, chunksToDelete.get(i).identifier,
 								chunksToDelete.get(i).index, 0, null);
 						server.controlP.sendQueue.add(chunkToDel);
+						
+						// to keep track of the chunks that were deleted by this peer and cannot be stored once again
+						server.forbiddenChunks.add(chunksToDelete.get(i));
 
 					}
 
@@ -260,28 +263,6 @@ public class Server {
 					chunks.remove(j);
 
 			}
-
-		}
-
-	}
-
-	public void processBelowChunks() {
-
-		int dif = 0;
-		
-		for (int i = 0; i < belowChunks.size(); i++) {
-
-			System.out.println("Reinitiating the backup protocol for a chunk below desired replication degree from server " + id);
-
-			FileEvent file = new FileEvent(id, 1);
-			file.chunks.add(belowChunks.get(i));
-			
-			dif = belowChunks.get(i).replicationDegree - belowChunks.get(i).actualRepDeg;
-
-			Message message = new Message("PUTCHUNK", "1.0", id, belowChunks.get(i).identifier,
-					belowChunks.get(i).index, dif, belowChunks.get(i).data);
-
-			requests.add(message);
 
 		}
 

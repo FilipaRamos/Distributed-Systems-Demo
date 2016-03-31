@@ -18,7 +18,7 @@ public class ProcessControl implements Runnable {
 
 	public void processControlQueue() {
 
-		System.out.println("Control processor is kicking off");
+		System.out.println("Setting up the Control Processor");
 		new Thread(this).start();
 
 	}

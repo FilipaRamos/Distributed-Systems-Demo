@@ -21,7 +21,7 @@ public class ServerManager implements Runnable {
 
 	public void startServerManager() {
 
-		System.out.println("Server manager kicking off!");
+		System.out.println("Setting up the Server Manager");
 		new Thread(this).start();
 
 	}
@@ -39,9 +39,13 @@ public class ServerManager implements Runnable {
 
 					if (!messages.get(i).senderId.equals(server.id)) {
 
-						System.out.println("Found a PUTCHUNK request! Storing chunk now...");
-						managePutchunk(i);
-						messages.remove(i);
+						if (isNotForbiddenChunk(i) == 1) {
+
+							System.out.println("Found a PUTCHUNK request! Storing chunk now...");
+							managePutchunk(i);
+							messages.remove(i);
+
+						}
 
 					}
 				} else if (messages.get(i).type.equals("GETCHUNK")) {
@@ -105,22 +109,25 @@ public class ServerManager implements Runnable {
 
 						if (findPutchunk(i) != 1) {
 
+							Chunk chunk = verifyRepDegree(i);
+
 							// replication degree below
-							if (verifyRepDegree(i) == 1) {
+							if (chunk != null) {
 
 								Message m = new Message("PUTCHUNK", "1.0", server.id, messages.get(i).fileId,
-										messages.get(i).chunkNr, messages.get(i).replicationDegree,
-										messages.get(i).data);
+										messages.get(i).chunkNr, chunk.replicationDegree, chunk.data);
+
 								server.requests.add(m);
 								System.out.println("Added request");
 
 							}
-							
+
 						} else {
 							System.out.println("Backup subprotocol already initiated by another peer...");
 						}
-						
+
 						messages.remove(i);
+						System.out.println("Finished server manager removed");
 
 					}
 
@@ -297,7 +304,7 @@ public class ServerManager implements Runnable {
 
 	}
 
-	public int verifyRepDegree(int index) {
+	public Chunk verifyRepDegree(int index) {
 
 		for (int i = 0; i < server.chunks.size(); i++) {
 
@@ -308,7 +315,7 @@ public class ServerManager implements Runnable {
 
 					System.out.println("Found chunk that droped below the desired replication degree");
 					System.out.println(server.chunks.get(i).identifier + " *-* " + server.chunks.get(i).index);
-					return 1;
+					return server.chunks.get(i);
 
 				}
 			}
@@ -329,7 +336,7 @@ public class ServerManager implements Runnable {
 							System.out.println("Found chunk that droped below the desired replication degree");
 							System.out.println(
 									server.files.get(k).identifier + " - " + server.files.get(k).chunks.get(j).index);
-							return 1;
+							return server.files.get(k).chunks.get(j);
 
 						}
 					}
@@ -339,7 +346,7 @@ public class ServerManager implements Runnable {
 
 		}
 
-		return 0;
+		return null;
 
 	}
 
@@ -365,6 +372,28 @@ public class ServerManager implements Runnable {
 
 		return 0;
 
+	}
+	
+	public int isNotForbiddenChunk(int index){
+		
+		for(int i = 0; i < server.forbiddenChunks.size(); i++){
+			
+			if(server.forbiddenChunks.get(i).identifier.equals(messages.get(index).fileId)){
+				
+				if(server.forbiddenChunks.get(i).index == messages.get(index).chunkNr){
+
+					// it's a forbidden chunk
+					return 0;
+					
+				}
+				
+			}
+			
+		}
+		
+		// it's not a forbidden chunk
+		return 1;
+		
 	}
 
 	public void newDelay() {
