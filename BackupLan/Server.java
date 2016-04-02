@@ -46,14 +46,10 @@ public class Server {
 		server.startEngine();
 
 		Interface inter = new Interface(server);
-		inter.getCommand();
-
-		try {
-			Thread.sleep(800);
-		} catch (Exception e) {
-		}
 
 		while (true) {
+			
+			inter.getCommand();
 
 			if (server.requests.size() != 0) {
 
@@ -82,7 +78,7 @@ public class Server {
 					}
 
 				}
-			} else {}
+			}
 
 		}
 

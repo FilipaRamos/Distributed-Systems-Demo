@@ -1,9 +1,11 @@
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class Interface {
 
-	DatagramSocket serverSocket;
+	ServerSocket serverSocket;
 
 	public Server server;
 
@@ -15,20 +17,18 @@ public class Interface {
 
 		try {
 
-			serverSocket = new DatagramSocket(9568);
+			serverSocket = new ServerSocket(9568);
 
-			byte[] received = new byte[1024];
+			Socket connectionSocket = serverSocket.accept();
 
-			DatagramPacket receivePacket = new DatagramPacket(received, received.length);
-			serverSocket.receive(receivePacket);
+			BufferedReader inFromClient = new BufferedReader
+					(new InputStreamReader(connectionSocket.getInputStream()));  
+			
+			String clientRequest = inFromClient.readLine();   
+			
+			System.out.println("Received from the client the request " + clientRequest);
 
-			System.out.println("RECEIVED");
-
-			String receivedInfo = new String(receivePacket.getData());
-
-			System.out.println("Received from the client the request " + receivedInfo);
-
-			parseRequest(receivedInfo);
+			parseRequest(clientRequest);
 
 		} catch (Exception e) {
 		}

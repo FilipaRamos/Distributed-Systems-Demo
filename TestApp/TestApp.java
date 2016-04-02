@@ -1,7 +1,6 @@
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class TestApp {
@@ -26,8 +25,7 @@ public class TestApp {
 		}
 
 		TestApp app = new TestApp();
-		DatagramSocket appSocket = new DatagramSocket();
-		InetAddress IPAddress;
+		Socket appSocket;
 
 		app.protocol = args[1];
 		app.opnd_1 = args[2];
@@ -38,19 +36,19 @@ public class TestApp {
 			String[] splitted;
 			splitted = (app.peer).split(":");
 
-			IPAddress = InetAddress.getByName("localhost");
+			appSocket = new Socket(splitted[0], Integer.parseInt(splitted[1]));
 			app.peer = splitted[1];
 
 		} else if (args[0].indexOf(":") == 0) {
 
-			String splitted = args[0].substring(1);
+			String port = args[0].substring(1);
 
-			IPAddress = InetAddress.getByName("localhost");
-			app.peer = splitted;
+			appSocket = new Socket("localhost", Integer.parseInt(port));
+			app.peer = port;
 
 		} else {
 
-			IPAddress = InetAddress.getByName(args[0]);
+			appSocket = new Socket("localhost", Integer.parseInt(args[0]));
 			app.peer = args[0];
 
 		}
@@ -74,14 +72,9 @@ public class TestApp {
 			System.exit(0);
 		}
 
-		byte[] sendData = new byte[1024];
-		sendData = toSend.getBytes();
-
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress,
-				Integer.parseInt(app.peer));
-		appSocket.send(sendPacket);
-		
-		System.out.println("Sent");
+		DataOutputStream out = new DataOutputStream(appSocket.getOutputStream());
+		out.writeBytes(toSend + '\n');
+		System.out.println("Sent command");
 
 		appSocket.close();
 
