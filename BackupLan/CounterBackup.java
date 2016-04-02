@@ -1,7 +1,7 @@
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.util.Arrays;
 
 public class CounterBackup implements Runnable {
 
@@ -34,8 +34,7 @@ public class CounterBackup implements Runnable {
 			try {
 
 				buffer = new byte[2 << 16];
-				toReceive = new DatagramPacket(buffer, buffer.length, server.multicast.backupIP,
-						server.multicast.backupPort);
+				toReceive = new DatagramPacket(buffer, buffer.length);
 
 				server.multicast.backupSocket.receive(toReceive);
 
@@ -58,7 +57,6 @@ public class CounterBackup implements Runnable {
 
 		Message m;
 
-		ByteArrayInputStream data = new ByteArrayInputStream(message);
 		byte[] chunkData = null;
 		byte[] header = null;
 
@@ -67,13 +65,14 @@ public class CounterBackup implements Runnable {
 			if (message[i] == 0xd && message[i + 1] == 0xa) {
 
 				if (message[i + 2] == 0xd && message[i + 3] == 0xa) {
-
+					
 					header = new byte[i + 3];
 					chunkData = new byte[length - (i + 3)];
-
-					data.read(header, 0, i + 3);
-					data.read(chunkData, 0, length - (i + 3));
+					
+					header = Arrays.copyOfRange(message, 0, i+3);
+					chunkData = Arrays.copyOfRange(message, i+4, length);
 					break;
+					
 				}
 			}
 

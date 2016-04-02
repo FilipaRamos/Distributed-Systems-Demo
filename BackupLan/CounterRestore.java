@@ -1,7 +1,7 @@
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
+import java.util.Arrays;
 
 public class CounterRestore implements Runnable {
 
@@ -54,7 +54,6 @@ public class CounterRestore implements Runnable {
 
 	public int parseMessage(byte[] message, int length) throws UnsupportedEncodingException {
 
-		ByteArrayInputStream data = new ByteArrayInputStream(message);
 		byte[] chunkData = null;
 		byte[] header = null;
 
@@ -67,8 +66,8 @@ public class CounterRestore implements Runnable {
 					header = new byte[i + 3];
 					chunkData = new byte[length - (i + 3)];
 
-					data.read(header, 0, i + 3);
-					data.read(chunkData, 0, length - (i + 3));
+					header = Arrays.copyOfRange(message, 0, i+3);
+					chunkData = Arrays.copyOfRange(message, i+4, length);
 					break;
 				}
 			}
@@ -83,12 +82,12 @@ public class CounterRestore implements Runnable {
 
 		if (messageSplit[0].equals("CHUNK")) {
 
-			if (server.file != null) {
+			if (server.restoreFile != null) {
 
-				if (messageSplit[3].equals(server.file.identifier) && (!messageSplit[2].equals(server.id))) {
+				if (messageSplit[3].equals(server.restoreFile.identifier) && (!messageSplit[2].equals(server.id))) {
 
-					Chunk chunk = new Chunk(server.file.identifier, Integer.parseInt(messageSplit[4]), chunkData, 1, 1);
-					server.file.chunks.add(chunk);
+					Chunk chunk = new Chunk(server.restoreFile.identifier, Integer.parseInt(messageSplit[4]), chunkData, 1, 1);
+					server.restoreFile.chunks.add(chunk);
 					return 1;
 
 				}

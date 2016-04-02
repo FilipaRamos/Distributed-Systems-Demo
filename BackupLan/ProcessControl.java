@@ -39,7 +39,7 @@ public class ProcessControl implements Runnable {
 
 				if (sendQueue.get(i).type.equals("STORED")) {
 
-					message = "STORED" + " " + sendQueue.get(i).version + " " + sendQueue.get(i).senderId + " "
+					message = "STORED" + " " + sendQueue.get(i).version + " " + server.id + " "
 							+ sendQueue.get(i).fileId + " " + sendQueue.get(i).chunkNr + " " + "\r\n" + "\r\n";
 
 					try {

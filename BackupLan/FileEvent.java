@@ -56,11 +56,18 @@ public class FileEvent {
 	}
 
 	// splits the file in chunks
-	public void splitFile(File inputFile, Server server) {
+	public void splitFile(File inputFile, Server server, boolean enhanced) {
 
 		FileInputStream inputStream;
 
 		System.out.println("...splitting file...");
+		
+		String version;
+		
+		if(enhanced)
+			version = "2.0";
+		else
+			version = "1.0";
 
 		int fileSize = (int) inputFile.length();
 		int nChunks = 0, read = 0, readLength = CHUNK_SIZE;
@@ -83,9 +90,9 @@ public class FileEvent {
 				Chunk chunk = new Chunk(identifier, nChunks - 1, byteChunkPart, replicationDegree, 0);
 				chunks.add(chunk);
 
-				Message message = new Message("PUTCHUNK", "1.0", server.id, identifier, nChunks - 1, replicationDegree,
+				Message message = new Message("PUTCHUNK", version, server.id, identifier, nChunks - 1, replicationDegree,
 						byteChunkPart);
-				server.requests.add(message);
+				server.putchunkRequests.add(message);
 
 				byteChunkPart = null;
 			}
@@ -104,6 +111,8 @@ public class FileEvent {
 
 		File file = new File(name);
 		FileOutputStream fos;
+		
+		chunks = containsRepeatedChunks();
 
 		try {
 			fos = new FileOutputStream(file, true);
@@ -126,6 +135,18 @@ public class FileEvent {
 		byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
 
 		return hash;
+	}
+	
+	public ArrayList<Chunk> containsRepeatedChunks(){
+		
+		Set<Chunk> chunksNotRepeated = new LinkedHashSet<>(chunks);
+		
+		ArrayList<Chunk> newChunks = new ArrayList<Chunk>();
+		
+		newChunks.addAll(chunksNotRepeated);
+		
+		return newChunks;
+		
 	}
 
 }

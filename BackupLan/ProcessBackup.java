@@ -41,18 +41,18 @@ public class ProcessBackup implements Runnable {
 
 		while (true) {
 
-			while (server.requests.size() > 0) {
+			while (server.putchunkRequests.size() > 0) {
 				
-				if (sendChunk(server, server.requests.get(0)) == 1) {
-					System.out.println("Processed chunk nr " + server.requests.get(0).chunkNr);
+				if (sendChunk(server, server.putchunkRequests.get(0)) == 1) {
+					System.out.println("Processed chunk nr " + server.putchunkRequests.get(0).chunkNr);
 					receivedStored.clear();
-					server.requests.remove(0);
+					server.putchunkRequests.remove(0);
 					waitingTime = 1000;
 					nrTries = 0;
 				}
 				if (nrTries >= 5) {
 					System.out.println("It wasn't possible to store the chunk with the desired replication degree :(");
-					server.requests.remove(0);
+					server.putchunkRequests.remove(0);
 					receivedStored.clear();
 					waitingTime = 1000;
 					nrTries = 0;

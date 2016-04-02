@@ -117,7 +117,7 @@ public class ServerManager implements Runnable {
 								Message m = new Message("PUTCHUNK", "1.0", server.id, messages.get(i).fileId,
 										messages.get(i).chunkNr, chunk.replicationDegree, chunk.data);
 
-								server.requests.add(m);
+								server.putchunkRequests.add(m);
 								System.out.println("Added request");
 
 							}
