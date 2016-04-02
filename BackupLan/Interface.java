@@ -11,21 +11,23 @@ public class Interface {
 
 	public Interface(Server server) {
 		this.server = server;
+		
+		try {
+			serverSocket = new ServerSocket(9568);
+		} catch (Exception e) {
+		}
 	}
 
 	public void getCommand() {
 
 		try {
 
-			serverSocket = new ServerSocket(9568);
-
 			Socket connectionSocket = serverSocket.accept();
 
-			BufferedReader inFromClient = new BufferedReader
-					(new InputStreamReader(connectionSocket.getInputStream()));  
-			
-			String clientRequest = inFromClient.readLine();   
-			
+			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+
+			String clientRequest = inFromClient.readLine();
+
 			System.out.println("Received from the client the request " + clientRequest);
 
 			parseRequest(clientRequest);

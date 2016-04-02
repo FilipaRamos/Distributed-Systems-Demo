@@ -50,7 +50,7 @@ public class ProcessBackup implements Runnable {
 					waitingTime = 1000;
 					nrTries = 0;
 				}
-				if (nrTries >= 5) {
+				if (nrTries >= 4) {
 					System.out.println("It wasn't possible to store the chunk with the desired replication degree :(");
 					server.putchunkRequests.remove(0);
 					receivedStored.clear();
@@ -137,7 +137,7 @@ public class ProcessBackup implements Runnable {
 			
 			System.out.println("Desired replication degree was not achieved! Trying again...");
 			nrTries++;
-			waitingTime = waitingTime * 2 * nrTries;
+			waitingTime = 1000 * 2 * nrTries;
 			findFile(message).chunks.get(message.chunkNr).actualRepDeg = receivedStored.size();
 			return -1;
 

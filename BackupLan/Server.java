@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Server {
 
@@ -48,7 +49,7 @@ public class Server {
 		Interface inter = new Interface(server);
 
 		while (true) {
-			
+
 			inter.getCommand();
 
 			if (server.requests.size() != 0) {
@@ -192,7 +193,13 @@ public class Server {
 	public void reclaimProtocol(int i) {
 
 		System.out.println("Reclaiming space now...");
-		ArrayList<Chunk> chunksToDelete = this.reclaimSpace(i);
+		ArrayList<Chunk> chunksToDelete;
+
+		if (this.requests.get(i).enhanced)
+			chunksToDelete = selectiveReclaim(i);
+		else
+			chunksToDelete = reclaimSpace(i);
+
 		String version;
 
 		if (this.requests.get(i).enhanced) {
@@ -288,6 +295,59 @@ public class Server {
 			return null;
 
 		}
+
+		return delChunks;
+
+	}
+
+	public ArrayList<Chunk> selectiveReclaim(int k) {
+
+		ArrayList<Chunk> delChunks = new ArrayList<Chunk>();
+		int space = 0;
+
+		ArrayList<Integer> sizes = new ArrayList<Integer>();
+
+		for (int index = 0; index < chunks.size(); index++) {
+
+			sizes.add(chunks.get(index).data.length);
+
+		}
+
+		for (int j = 0; j < chunks.size(); j++) {
+
+			if (chunks.get(j).actualRepDeg > chunks.get(j).replicationDegree) {
+
+				space += chunks.get(j).data.length;
+				delChunks.add(chunks.get(j));
+
+			}
+
+			if (space >= this.requests.get(k).spaceToReclaim) {
+				System.out.println("Found the chunks to eliminate...");
+				break;
+			}
+
+		}
+
+		Collections.sort(sizes);
+
+		while (space < this.requests.get(k).spaceToReclaim) {
+
+			if (chunks.size() != 0)
+				space += sizes.get(sizes.size() - 1);
+			else
+				break;
+
+		}
+
+		if (space < this.requests.get(k).spaceToReclaim) {
+
+			System.out.println("Server doesn't have enough chunks to reclaim that much space... :(");
+			return null;
+
+		}
+
+		System.out.println("Found all the chunks to delete... :)");
 
 		return delChunks;
 
