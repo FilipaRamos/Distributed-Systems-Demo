@@ -9,11 +9,14 @@ public class ServerManager implements Runnable {
 
 	public Server server;
 	public ArrayList<Message> messages;
+	public ArrayList<Chunk> chunksToUpdate;
 
 	public int randomDelay;
 
 	public ServerManager(Server server) {
 		messages = new ArrayList<Message>();
+		chunksToUpdate = new ArrayList<Chunk>();
+
 		this.server = server;
 		startServerManager();
 
@@ -134,14 +137,19 @@ public class ServerManager implements Runnable {
 					newDelay();
 
 				}
+
+				if (server.backupEnh)
+					updateChunkCount();
+
 			}
 
 			try {
-				Thread.sleep(500);
+				Thread.sleep(400);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		}
 	}
 
@@ -373,27 +381,113 @@ public class ServerManager implements Runnable {
 		return 0;
 
 	}
-	
-	public int isNotForbiddenChunk(int index){
-		
-		for(int i = 0; i < server.forbiddenChunks.size(); i++){
-			
-			if(server.forbiddenChunks.get(i).identifier.equals(messages.get(index).fileId)){
-				
-				if(server.forbiddenChunks.get(i).index == messages.get(index).chunkNr){
+
+	public int isNotForbiddenChunk(int index) {
+
+		for (int i = 0; i < server.forbiddenChunks.size(); i++) {
+
+			if (server.forbiddenChunks.get(i).identifier.equals(messages.get(index).fileId)) {
+
+				if (server.forbiddenChunks.get(i).index == messages.get(index).chunkNr) {
 
 					// it's a forbidden chunk
 					return 0;
-					
+
 				}
-				
+
 			}
-			
+
 		}
-		
+
 		// it's not a forbidden chunk
 		return 1;
-		
+
+	}
+
+	public void updateChunkCount() {
+
+		for (int i = 0; i < chunksToUpdate.size(); i++) {
+
+			int chunkIndex = findUpdateChunk(i);
+			if (chunkIndex != -1)
+				server.chunks.get(chunkIndex).incrementActualDeg();
+			else {
+
+				int existentChunk = findExistentChunk(i);
+
+				if (existentChunk != 1)
+					server.existentChunks.get(existentChunk).incrementActualDeg();
+				else {
+
+					Chunk chunk = new Chunk(chunksToUpdate.get(i).identifier, chunksToUpdate.get(i).index, null,
+							chunksToUpdate.get(i).replicationDegree, 1);
+					server.existentChunks.add(chunk);
+				}
+
+			}
+
+		}
+
+		verifyForbidden();
+
+	}
+
+	public void verifyForbidden() {
+
+		for (int i = 0; i < server.chunks.size(); i++) {
+
+			if (server.chunks.get(i).actualRepDeg >= server.chunks.get(i).replicationDegree) {
+
+				server.forbiddenChunks.add(server.chunks.get(i));
+
+			}
+
+		}
+
+		for (int k = 0; k < server.existentChunks.size(); k++) {
+
+			if (server.existentChunks.get(k).actualRepDeg >= server.existentChunks.get(k).replicationDegree) {
+
+				server.forbiddenChunks.add(server.chunks.get(k));
+
+			}
+
+		}
+
+	}
+
+	public int findUpdateChunk(int index) {
+
+		for (int i = 0; i < server.chunks.size(); i++) {
+
+			if (server.chunks.get(i).identifier.equals(chunksToUpdate.get(index).identifier)
+					&& server.chunks.get(i).index == chunksToUpdate.get(index).index) {
+
+				return i;
+
+			}
+
+		}
+
+		return -1;
+
+	}
+
+	public int findExistentChunk(int index) {
+
+		for (int i = 0; i < server.existentChunks.size(); i++) {
+
+			if (server.existentChunks.get(i).identifier.equals(chunksToUpdate.get(index).identifier)
+					&& server.existentChunks.get(i).index == chunksToUpdate.get(index).index) {
+
+				return i;
+
+			}
+
+		}
+
+		return -1;
+
 	}
 
 	public void newDelay() {

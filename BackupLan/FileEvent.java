@@ -56,18 +56,13 @@ public class FileEvent {
 	}
 
 	// splits the file in chunks
-	public void splitFile(File inputFile, Server server, boolean enhanced) {
+	public void splitFile(File inputFile, Server server) {
 
 		FileInputStream inputStream;
 
 		System.out.println("...splitting file...");
 		
-		String version;
-		
-		if(enhanced)
-			version = "2.0";
-		else
-			version = "1.0";
+		String version = "1.0";
 
 		int fileSize = (int) inputFile.length();
 		int nChunks = 0, read = 0, readLength = CHUNK_SIZE;

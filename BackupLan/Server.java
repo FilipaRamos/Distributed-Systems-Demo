@@ -27,6 +27,8 @@ public class Server {
 	public ArrayList<FileEvent> files = new ArrayList<FileEvent>();
 	// chunks that were stored by this server
 	public ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+	// chunks that exist somewhere in between the peers but are not stored on this one
+	public ArrayList<Chunk> existentChunks = new ArrayList<Chunk>();
 	// requests from the testApp
 	public ArrayList<Request> requests = new ArrayList<Request>();
 	// requests that the user has made
@@ -37,6 +39,8 @@ public class Server {
 	public FileEvent deleteFile = null;
 	// chunks that cannot be stored
 	public ArrayList<Chunk> forbiddenChunks = new ArrayList<Chunk>();
+	
+	public boolean backupEnh = false;
 
 	public Server() {
 	}
@@ -112,31 +116,21 @@ public class Server {
 				sdf.format(file.lastModified()), this.requests.get(i).replicationDegree);
 
 		this.files.add(fileEvent);
+		
+		if(this.requests.get(i).enhanced)
+			this.backupEnh = true;
 
-		if (requests.get(i).enhanced)
-			fileEvent.splitFile(file, this, true);
-		else
-			fileEvent.splitFile(file, this, false);
+		fileEvent.splitFile(file, this);
 
 	}
 
 	public void restoreProtocol(int i) {
 
-		String version;
+		String version = "1.0";
 		int index = this.findFile(this.requests.get(i).path);
 
 		this.restoreFile = this.files.get(index);
 		this.files.get(index).chunks.clear();
-
-		if (this.requests.get(i).enhanced) {
-
-			version = "2.0";
-
-		} else {
-
-			version = "1.0";
-
-		}
 
 		// add the messages for each chunk
 		for (int k = 0; k < this.restoreFile.chunksNo; k++) {
@@ -161,19 +155,9 @@ public class Server {
 
 	public void deleteProtocol(int i) {
 
-		String version;
+		String version = "1.0";
 		int deleteIndex = this.findFile(this.requests.get(i).path);
 		this.deleteFile = this.files.get(deleteIndex);
-
-		if (this.requests.get(i).enhanced) {
-
-			version = "2.0";
-
-		} else {
-
-			version = "1.0";
-
-		}
 
 		Message deleteMessage = new Message("DELETE", version, this.id, this.deleteFile.identifier, 0, 0, null);
 		this.controlP.sendQueue.add(deleteMessage);
@@ -200,31 +184,23 @@ public class Server {
 		else
 			chunksToDelete = reclaimSpace(i);
 
-		String version;
-
-		if (this.requests.get(i).enhanced) {
-
-			version = "2.0";
-
-		} else {
-
-			version = "1.0";
-
-		}
+		String version = "1.0";
 
 		if (chunksToDelete != null) {
 
 			for (int k = 0; k < chunksToDelete.size(); k++) {
+				
+				int index = findChunks(chunksToDelete.get(k));
 
-				String newPath = System.getProperty("user.dir") + "\\" + this.chunks.get(k).identifier + "_"
-						+ Integer.toString(this.chunks.get(k).index);
+				String newPath = System.getProperty("user.dir") + "\\" + this.chunks.get(index).identifier + "_"
+						+ Integer.toString(this.chunks.get(index).index);
 
 				Path path = Paths.get(newPath);
 
 				try {
 					Files.deleteIfExists(path);
-					System.out.println("Deleted chunk " + this.chunks.get(k).identifier + "_"
-							+ Integer.toString(this.chunks.get(k).index));
+					System.out.println("Deleted chunk " + chunksToDelete.get(k).identifier + "_"
+							+ Integer.toString(this.chunks.get(index).index));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -304,7 +280,7 @@ public class Server {
 
 		ArrayList<Chunk> delChunks = new ArrayList<Chunk>();
 		int space = 0;
-
+		
 		ArrayList<Integer> sizes = new ArrayList<Integer>();
 
 		for (int index = 0; index < chunks.size(); index++) {
@@ -319,6 +295,7 @@ public class Server {
 
 				space += chunks.get(j).data.length;
 				delChunks.add(chunks.get(j));
+				sizes = removeLengthChunk(sizes, chunks.get(j).data.length);
 
 			}
 
@@ -332,9 +309,12 @@ public class Server {
 		Collections.sort(sizes);
 
 		while (space < this.requests.get(k).spaceToReclaim) {
-
-			if (chunks.size() != 0)
+			
+			if (chunks.size() != 0){
 				space += sizes.get(sizes.size() - 1);
+				int index = findLengthChunk(sizes.get(sizes.size() - 1));
+				delChunks.add(chunks.get(index));
+			}
 			else
 				break;
 
@@ -351,6 +331,45 @@ public class Server {
 
 		return delChunks;
 
+	}
+	
+	public int findLengthChunk(int length){
+		
+		for(int i = 0; i < chunks.size(); i++){
+			
+			if(chunks.get(i).data.length == length)
+				return i;
+			
+		}
+		
+		return -1;
+		
+	}
+	
+	public ArrayList<Integer> removeLengthChunk(ArrayList<Integer> sizes, int length){
+		
+		for(int i = 0; i < sizes.size(); i++){
+			
+			if(sizes.get(i) == length)
+				sizes.remove(i);
+			
+		}
+		
+		return sizes;
+		
+	}
+	
+	public int findChunks(Chunk chunk){
+		
+		for(int i = 0; i < chunks.size(); i++){
+			
+			if(chunks.get(i) == chunk)
+				return i;
+			
+		}
+		
+		return -1;
+		
 	}
 
 	public void removeChunks(ArrayList<Chunk> toDel) {

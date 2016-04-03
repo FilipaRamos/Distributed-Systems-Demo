@@ -42,7 +42,7 @@ public class ProcessBackup implements Runnable {
 		while (true) {
 
 			while (server.putchunkRequests.size() > 0) {
-				
+
 				if (sendChunk(server, server.putchunkRequests.get(0)) == 1) {
 					System.out.println("Processed chunk nr " + server.putchunkRequests.get(0).chunkNr);
 					receivedStored.clear();
@@ -57,12 +57,13 @@ public class ProcessBackup implements Runnable {
 					waitingTime = 1000;
 					nrTries = 0;
 				}
-				
+
 			}
-			
-			try{
+
+			try {
 				Thread.sleep(100);
-			}catch(Exception e){}
+			} catch (Exception e) {
+			}
 
 		}
 
@@ -79,7 +80,7 @@ public class ProcessBackup implements Runnable {
 		System.out.println("Chunk header formed");
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		
+
 		try {
 			outputStream.write(head);
 			outputStream.write(request.data);
@@ -127,6 +128,12 @@ public class ProcessBackup implements Runnable {
 
 					}
 
+				} else {
+
+					Chunk chunk = new Chunk(serverManager.messages.get(i).fileId, serverManager.messages.get(i).chunkNr,
+							serverManager.messages.get(i).data, serverManager.messages.get(i).replicationDegree, 0);
+					serverManager.chunksToUpdate.add(chunk);
+
 				}
 
 			}
@@ -134,7 +141,7 @@ public class ProcessBackup implements Runnable {
 		}
 
 		if (receivedStored.size() < message.replicationDegree) {
-			
+
 			System.out.println("Desired replication degree was not achieved! Trying again...");
 			nrTries++;
 			waitingTime = 1000 * 2 * nrTries;

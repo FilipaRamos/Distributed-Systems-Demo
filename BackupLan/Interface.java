@@ -11,7 +11,7 @@ public class Interface {
 
 	public Interface(Server server) {
 		this.server = server;
-		
+
 		try {
 			serverSocket = new ServerSocket(9568);
 		} catch (Exception e) {
@@ -77,6 +77,13 @@ public class Interface {
 			server.id = splitted[1];
 
 			Request request = new Request("RECLAIM", null, 0, Integer.parseInt(splitted[2]), false);
+			server.requests.add(request);
+
+		} else if (splitted[0].equals("RECLAIMENH")) {
+
+			server.id = splitted[1];
+
+			Request request = new Request("RECLAIM", null, 0, Integer.parseInt(splitted[2]), true);
 			server.requests.add(request);
 
 		}
