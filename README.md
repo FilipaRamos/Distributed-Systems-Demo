@@ -4,8 +4,22 @@
   
   To successfully run the program the following steps must be performed in the exact same order:
   
-    1. Run the server.
+    1. Run the server with the desired arguments.
     2. Run the TestApp with the desired arguments.
     3. If there is the need to send a new command repeat number 2.
     
-  If the protocol to use is the enhanced version the TestApp must be called with the protocol name plus "ENH". For example, for the backup protocol the enhanced version must be called "BACKUPENH".
+  Arguments for the server:
+  
+    1. IP addres for the control channel
+    2. port for the control channel
+    3. IP addres for the backup channel
+    4. port for the backup channel
+    5. IP addres for the restore channel
+    6. port for the restore channel
+    7. true or false indicating whether the backup protocol should be the enhanced one or not
+    8. true or false indicating whether the reclaim protocol should be the enhanced one or not
+    9. port to communicate with the TestApp
+    
+  Arguments for the testApp:
+  
+    1. As described in the interface specification
