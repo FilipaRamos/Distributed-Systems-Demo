@@ -1,0 +1,11 @@
+Introduction
+
+The enhancements implemented for the backup service in a LAN were the presented below. These were thought to be compatible with all systems being only twists on the implementation that was asked. The objective is to guaranteee the most reliable service possible. All the implemented enhancements did not include new message types in order to guarantee that even the enhanced protocols were interoperable with other applications.
+
+Backup enhancement
+
+This enhancement is based upon the principle that stored messages are useful to better understand the real replication degree of a chunk. This protocol analyses every stored message and keeps an array of chunks to update on the server manager. The server manager will increment their actual replication degree. If the chunk does not exist on the peer, a new chunk is created and it is stored on the server's arraylist called existentChunks. After all the counts are updated, the server manager will verify whether there are chunks with higher or equal replication degree than the desired one. If this happens, the chunks are added to the forbiddenChunks arraylist which keeps all the chunks that shouldn't be stored by this peer. This allows the server to keep track of all the chunks real replication degree and avoids overestimating and underestimating their count.
+
+Reclaim enhancement
+
+The initial version of this protocol would delete the older chunks in the system. This enhancement seeks to make sure that the chunks that are deleted first are the ones with higher replication degree than the desired. If there are no more chunks in this condition, the protocol will delete the larger chunks.
